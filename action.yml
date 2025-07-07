@@ -1,5 +1,5 @@
-name: "chatGPT Algorithm Mentor"
-description: "algorithm code review using chatGPT"
+name: "AI Algorithm Mentor"
+description: "algorithm code review using LLM"
 author: "choam2426"
 inputs:
   GITHUB_TOKEN:
