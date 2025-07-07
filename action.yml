@@ -9,13 +9,17 @@ inputs:
     description: "AI model provider to use for code review (openai, google, anthropic)"
     required: true
     default: "openai"
+  LLM_MODEL:
+    description: "AI model to use (gpt-4o, gpt-4o-mini, gemini-2.5-pro, claude-3-sonnet, etc.)"
+    required: false
+    default: "gpt-4o"
   OPENAI_API_KEY:
     description: "OpenAI API key (required when LLM_PROVIDER is 'openai')"
     required: false
   GOOGLE_API_KEY:
     description: "Google AI API key (required when LLM_PROVIDER is 'google')"
     required: false
-  CLAUDE_API_KEY:
+  ANTHROPIC_API_KEY:
     description: "Anthropic Claude API key (required when LLM_PROVIDER is 'anthropic')"
     required: false
 
@@ -26,9 +30,10 @@ runs:
   env:
     GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
     LLM_PROVIDER: ${{ inputs.LLM_PROVIDER }}
+    LLM_MODEL: ${{ inputs.LLM_MODEL }}
     OPENAI_API_KEY: ${{ inputs.OPENAI_API_KEY }}
     GOOGLE_API_KEY: ${{ inputs.GOOGLE_API_KEY }}
-    CLAUDE_API_KEY: ${{ inputs.CLAUDE_API_KEY }}
+    ANTHROPIC_API_KEY: ${{ inputs.ANTHROPIC_API_KEY }}
 branding:
   icon: "check-circle"
   color: "blue"
