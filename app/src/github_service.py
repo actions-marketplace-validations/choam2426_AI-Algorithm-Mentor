@@ -3,7 +3,19 @@ import subprocess
 
 import httpx
 
-from .consts import COMMIT_SHA, GITHUB_TOKEN, REPOSITORY_NAME, TARGET_SOURCE_FILE_SUFFIX
+from .consts import COMMIT_SHA, GITHUB_TOKEN, REPOSITORY_NAME
+
+TARGET_SOURCE_FILE_SUFFIX = (
+    ".c",
+    ".cpp",
+    "cc",
+    "cxx",
+    ".py",
+    ".java",
+    ".js",
+    ".go",
+    ".rs",
+)
 
 
 def get_current_commit_diff() -> dict[str, str]:
