@@ -40,7 +40,7 @@ template = """당신은 세계 최고의 알고리즘 트레이닝 코치이자 
                 return [i, j]
 
     # 수정 후
-    num_map = {}
+    num_map = \{\}
     for i, num in enumerate(nums):
         complement = target - num
         if complement in num_map:
