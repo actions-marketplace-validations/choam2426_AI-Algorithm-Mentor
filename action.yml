@@ -22,7 +22,10 @@ inputs:
   ANTHROPIC_API_KEY:
     description: "Anthropic Claude API key (required when LLM_PROVIDER is 'anthropic')"
     required: false
-
+  review_LANGUAGE:
+    description: "Language for code review comments (e.g., english, korean)"
+    required: false
+    default: "english"
 
 runs:
   using: "docker"
