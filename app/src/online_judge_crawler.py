@@ -721,6 +721,125 @@ def print_problem_details(problems: List[ProblemInfo]):
             print(f"❌ 오류: {problem.error_message}")
 
 
+def format_problem_for_llm(
+    problem: ProblemInfo,
+    include_examples: bool = True,
+    max_description_length: int = 1000,
+) -> str:
+    """
+    ProblemInfo를 LLM이 읽기 쉬운 형태로 변환하는 함수
+
+    Args:
+        problem: ProblemInfo 객체
+        include_examples: 예제 입출력 포함 여부
+        max_description_length: 설명 최대 길이 (너무 길면 잘림)
+
+    Returns:
+        str: LLM 친화적인 형태로 포맷된 문자열
+    """
+
+    if not problem.success:
+        return f"""
+❌ PROBLEM EXTRACTION FAILED
+Site: {problem.site}
+URL: {problem.url}
+Error: {problem.error_message}
+"""
+
+    lines = []
+
+    # 헤더 섹션
+    header = "📚 PROBLEM INFORMATION"
+    lines.append(header)
+    lines.append("=" * len(header))
+    lines.append("")
+
+    # 기본 정보
+    lines.append(f"🌐 Site: {problem.site}")
+    lines.append(f"🔢 Problem ID: {problem.problem_id}")
+    lines.append(f"📝 Title: {problem.title}")
+
+    if problem.difficulty:
+        lines.append(f"⚡ Difficulty: {problem.difficulty}")
+
+    if problem.url:
+        lines.append(f"🔗 URL: {problem.url}")
+
+    lines.append("")
+
+    # 제한 사항
+    if problem.time_limit or problem.memory_limit:
+        lines.append("⏱️ CONSTRAINTS")
+        lines.append("-" * 12)
+
+        if problem.time_limit:
+            lines.append(f"• Time Limit: {problem.time_limit}")
+
+        if problem.memory_limit:
+            lines.append(f"• Memory Limit: {problem.memory_limit}")
+
+        lines.append("")
+
+    # 태그
+    if problem.tags:
+        lines.append("🏷️ TAGS")
+        lines.append("-" * 6)
+        tags_str = ", ".join(problem.tags)
+        lines.append(f"• {tags_str}")
+        lines.append("")
+
+    # 문제 설명
+    if problem.description:
+        lines.append("📖 PROBLEM DESCRIPTION")
+        lines.append("-" * 20)
+
+        # 설명이 너무 길면 자르기
+        description = problem.description
+        if len(description) > max_description_length:
+            description = description[:max_description_length] + "... [truncated]"
+
+        # 긴 설명을 적절히 줄바꿈
+        lines.append(description)
+        lines.append("")
+
+    # 입력 형식
+    if problem.input_format:
+        lines.append("📥 INPUT FORMAT")
+        lines.append("-" * 14)
+        lines.append(problem.input_format)
+        lines.append("")
+
+    # 출력 형식
+    if problem.output_format:
+        lines.append("📤 OUTPUT FORMAT")
+        lines.append("-" * 15)
+        lines.append(problem.output_format)
+        lines.append("")
+
+    # 예제
+    if include_examples and problem.examples:
+        lines.append("💡 EXAMPLES")
+        lines.append("-" * 10)
+
+        for i, example in enumerate(problem.examples, 1):
+            lines.append(f"Example {i}:")
+            lines.append("  Input:")
+            # 입력이 여러 줄인 경우 들여쓰기
+            input_lines = example.get("input", "").strip().split("\n")
+            for input_line in input_lines:
+                lines.append(f"    {input_line}")
+
+            lines.append("  Output:")
+            # 출력이 여러 줄인 경우 들여쓰기
+            output_lines = example.get("output", "").strip().split("\n")
+            for output_line in output_lines:
+                lines.append(f"    {output_line}")
+
+            lines.append("")
+
+    return "\n".join(lines)
+
+
 # 테스트 및 사용 예시
 if __name__ == "__main__":
     # 테스트 문장 - 5개 사이트 모두 포함
