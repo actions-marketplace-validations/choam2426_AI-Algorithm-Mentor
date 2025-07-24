@@ -1,147 +1,192 @@
-from enum import Enum
-from typing import Any, Optional
+"""
+LLM Service Module for AI Algorithm Mentor.
+
+This module provides a clean, type-safe interface to various LLM providers
+with proper error handling, logging, and configuration management.
+"""
+
+from abc import ABC, abstractmethod
+from typing import Protocol, Union, Any, Optional
+from dataclasses import dataclass
 
 from langchain_anthropic import ChatAnthropic
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_openai import ChatOpenAI
+from langchain_core.language_models.chat_models import BaseChatModel
+from langchain_core.messages import HumanMessage, SystemMessage
 
-from .consts import (
-    ANTHROPIC_API_KEY,
-    GOOGLE_API_KEY,
-    LLM_MODEL,
-    LLM_PROVIDER,
-    OPENAI_API_KEY,
-)
+from .config import AppConfig, LLMProvider
+from .exceptions import LLMServiceError, ConfigurationError
+from .logger import get_logger
 
-
-class LLMProvider(Enum):
-    """지원되는 LLM 제공자들"""
-
-    OPENAI = "openai"
-    ANTHROPIC = "anthropic"
-    GOOGLE = "google"
+logger = get_logger(__name__)
 
 
-def create_llm(
-    temperature: float = 0.1,
-    max_tokens: Optional[int] = 2000,
-    **kwargs: Any,
-):
-    """
-    LLM_PROVIDER 상수 값에 따라 적절한 Langchain LLM 객체를 생성합니다.
+@dataclass(frozen=True)
+class LLMResponse:
+    """Structured response from LLM service."""
+    content: str
+    provider: str
+    model: str
+    tokens_used: Optional[int] = None
+    
+    def __str__(self) -> str:
+        return self.content
 
-    Args:
-        provider (str): LLM 제공자 ("openai", "anthropic", "google")
-        model_name (str, optional): 사용할 모델명
-        temperature (float): 생성 온도 (0.0-1.0)
-        max_tokens (int, optional): 최대 토큰 수
-        api_key (str, optional): API 키 (없으면 환경변수에서 읽음)
-        **kwargs: 추가 파라미터
 
-    Returns:
-        LangChain LLM 객체
+class LLMServiceProtocol(Protocol):
+    """Protocol defining the interface for LLM services."""
+    
+    def generate_review(self, problem_description: str, user_code: str, language: str) -> LLMResponse:
+        """Generate a code review."""
+        ...
 
-    Raises:
-        ValueError: 지원하지 않는 제공자이거나 필요한 설정이 누락된 경우
-        ImportError: 필요한 패키지가 설치되지 않은 경우
-    """
 
-    provider = LLM_PROVIDER.lower().strip()
-
-    try:
-        if provider == LLMProvider.OPENAI.value:
-            return _create_openai_llm(LLM_MODEL, temperature, max_tokens, **kwargs)
-
-        elif provider == LLMProvider.ANTHROPIC.value:
-            return _create_anthropic_llm(LLM_MODEL, temperature, max_tokens, **kwargs)
-
-        elif provider == LLMProvider.GOOGLE.value:
-            return _create_google_llm(LLM_MODEL, temperature, max_tokens, **kwargs)
-
-        else:
-            supported_providers = [p.value for p in LLMProvider]
-            raise ValueError(
-                f"지원하지 않는 제공자입니다: {provider}. 지원되는 제공자: {supported_providers}"
+class BaseLLMService(ABC):
+    """Abstract base class for LLM services."""
+    
+    def __init__(self, config: AppConfig):
+        self.config = config
+        self._client: Optional[BaseChatModel] = None
+    
+    @property
+    def client(self) -> BaseChatModel:
+        """Lazy-loaded LLM client."""
+        if self._client is None:
+            self._client = self._create_client()
+        return self._client
+    
+    @abstractmethod
+    def _create_client(self) -> BaseChatModel:
+        """Create the LLM client."""
+        pass
+    
+    def generate_review(self, problem_description: str, user_code: str, language: str) -> LLMResponse:
+        """Generate a code review using the LLM."""
+        try:
+            logger.info(f"🤖 Generating review with {self.config.llm.provider.value} ({self.config.llm.model})")
+            
+            # Create messages
+            system_message = self._create_system_message(language)
+            user_message = self._create_user_message(problem_description, user_code)
+            
+            # Generate response
+            response = self.client.invoke([system_message, user_message])
+            
+            logger.info("✅ Review generated successfully")
+            
+            return LLMResponse(
+                content=response.content,
+                provider=self.config.llm.provider.value,
+                model=self.config.llm.model
             )
+            
+        except Exception as e:
+            logger.error(f"❌ Failed to generate review: {e}")
+            raise LLMServiceError(f"Failed to generate review: {str(e)}")
+    
+    def _create_system_message(self, language: str) -> SystemMessage:
+        """Create system message with review instructions."""
+        from .prompt import get_system_prompt
+        return SystemMessage(content=get_system_prompt(language))
+    
+    def _create_user_message(self, problem_description: str, user_code: str) -> HumanMessage:
+        """Create user message with problem and code."""
+        content = f"""**Problem Description:**
+{problem_description if problem_description else "No specific problem description provided."}
 
-    except ImportError as e:
-        raise ImportError(
-            f"{provider} 제공자를 사용하기 위해 필요한 패키지가 설치되지 않았습니다: {e}"
-        )
+**Code to Review:**
+```
+{user_code}
+```"""
+        return HumanMessage(content=content)
 
 
-def _create_openai_llm(
-    model_name: Optional[str],
-    temperature: float,
-    max_tokens: Optional[int],
-    **kwargs,
-) -> ChatOpenAI:
-    """OpenAI LLM 객체 생성"""
-    params = {
-        "model": model_name,
-        "temperature": temperature,
-        "api_key": OPENAI_API_KEY,
-        **kwargs,
+class OpenAIService(BaseLLMService):
+    """OpenAI LLM service implementation."""
+    
+    def _create_client(self) -> ChatOpenAI:
+        """Create OpenAI client."""
+        try:
+            params = {
+                "model": self.config.llm.model,
+                "temperature": self.config.llm.temperature,
+                "max_tokens": self.config.llm.max_tokens,
+                "api_key": self.config.llm.api_key,
+            }
+            
+            logger.debug(f"🔧 Creating OpenAI client with model: {self.config.llm.model}")
+            return ChatOpenAI(**params)
+            
+        except Exception as e:
+            raise LLMServiceError(f"Failed to create OpenAI client: {str(e)}")
+
+
+class AnthropicService(BaseLLMService):
+    """Anthropic Claude LLM service implementation."""
+    
+    def _create_client(self) -> ChatAnthropic:
+        """Create Anthropic client."""
+        try:
+            params = {
+                "model": self.config.llm.model,
+                "temperature": self.config.llm.temperature,
+                "max_tokens": self.config.llm.max_tokens,
+                "anthropic_api_key": self.config.llm.api_key,
+            }
+            
+            logger.debug(f"🔧 Creating Anthropic client with model: {self.config.llm.model}")
+            return ChatAnthropic(**params)
+            
+        except Exception as e:
+            raise LLMServiceError(f"Failed to create Anthropic client: {str(e)}")
+
+
+class GoogleService(BaseLLMService):
+    """Google Generative AI LLM service implementation."""
+    
+    def _create_client(self) -> ChatGoogleGenerativeAI:
+        """Create Google Generative AI client."""
+        try:
+            params = {
+                "model": self.config.llm.model,
+                "temperature": self.config.llm.temperature,
+                "max_output_tokens": self.config.llm.max_tokens,  # Note: different parameter name
+                "google_api_key": self.config.llm.api_key,
+            }
+            
+            logger.debug(f"🔧 Creating Google client with model: {self.config.llm.model}")
+            return ChatGoogleGenerativeAI(**params)
+            
+        except Exception as e:
+            raise LLMServiceError(f"Failed to create Google client: {str(e)}")
+
+
+class LLMServiceFactory:
+    """Factory for creating LLM services."""
+    
+    _services = {
+        LLMProvider.OPENAI: OpenAIService,
+        LLMProvider.ANTHROPIC: AnthropicService,
+        LLMProvider.GOOGLE: GoogleService,
     }
-
-    if max_tokens:
-        params["max_tokens"] = max_tokens
-
-    if not params["api_key"]:
-        raise ValueError(
-            "OpenAI API 키가 필요합니다. api_key 매개변수를 제공하거나 OPENAI_API_KEY 환경변수를 설정하세요."
-        )
-
-    return ChatOpenAI(**params)
-
-
-def _create_anthropic_llm(
-    model_name: Optional[str],
-    temperature: float,
-    max_tokens: Optional[int],
-    **kwargs,
-) -> ChatAnthropic:
-    """Anthropic LLM 객체 생성"""
-
-    params = {
-        "model": model_name,
-        "temperature": temperature,
-        "anthropic_api_key": ANTHROPIC_API_KEY,
-        **kwargs,
-    }
-
-    if max_tokens:
-        params["max_tokens"] = max_tokens
-
-    if not params["anthropic_api_key"]:
-        raise ValueError(
-            "Anthropic API 키가 필요합니다. api_key 매개변수를 제공하거나 ANTHROPIC_API_KEY 환경변수를 설정하세요."
-        )
-
-    return ChatAnthropic(**params)
+    
+    @classmethod
+    def create_service(cls, config: AppConfig) -> BaseLLMService:
+        """Create an LLM service based on configuration."""
+        service_class = cls._services.get(config.llm.provider)
+        
+        if not service_class:
+            supported_providers = [p.value for p in LLMProvider]
+            raise ConfigurationError(
+                f"Unsupported LLM provider: {config.llm.provider.value}. "
+                f"Supported providers: {', '.join(supported_providers)}"
+            )
+        
+        logger.info(f"🏭 Creating {config.llm.provider.value} service")
+        return service_class(config)
 
 
-def _create_google_llm(
-    model_name: Optional[str],
-    temperature: float,
-    max_tokens: Optional[int],
-    **kwargs,
-) -> ChatGoogleGenerativeAI:
-    """Google Generative AI LLM 객체 생성"""
-
-    params = {
-        "model": model_name,
-        "temperature": temperature,
-        "google_api_key": GOOGLE_API_KEY,
-        **kwargs,
-    }
-
-    if max_tokens:
-        params["max_output_tokens"] = max_tokens
-
-    if not params["google_api_key"]:
-        raise ValueError(
-            "Google API 키가 필요합니다. api_key 매개변수를 제공하거나 GOOGLE_API_KEY 환경변수를 설정하세요."
-        )
-
-    return ChatGoogleGenerativeAI(**params)
+def create_llm_service(config: AppConfig) -> BaseLLMService:
+    """Convenience function to create an LLM service."""
+    return LLMServiceFactory.create_service(config)
