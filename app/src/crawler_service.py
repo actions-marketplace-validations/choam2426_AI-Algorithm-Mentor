@@ -234,12 +234,410 @@ class BaekjoonCrawler(BaseCrawler):
         return time_limit, memory_limit
 
 
+class ProgrammersCrawler(BaseCrawler):
+    """Crawler for Programmers (programmers.co.kr)."""
+    
+    def supports_url(self, url: str) -> bool:
+        return "programmers.co.kr" in url
+    
+    def crawl(self, url: str) -> ProblemInfo:
+        """Crawl Programmers problem information."""
+        try:
+            self.driver.get(url)
+            time.sleep(5)  # JavaScript loading wait
+            
+            # Extract problem ID
+            problem_match = re.search(r"/lessons/(\d+)", url)
+            problem_id = problem_match.group(1) if problem_match else "unknown"
+            
+            # Get title
+            title = "제목 추출 실패"
+            title_selectors = [
+                "h3.lesson-title",
+                ".algorithm-title",
+                "[data-cy='algorithm-title']",
+                ".title",
+                "h1", "h2", "h3",
+                ".challenge-title",
+            ]
+            
+            for selector in title_selectors:
+                try:
+                    title_elem = self.wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                    )
+                    potential_title = title_elem.text.strip()
+                    if (potential_title and 
+                        not potential_title.startswith("프로그래머스") and 
+                        len(potential_title) > 3):
+                        title = potential_title
+                        break
+                except Exception:
+                    continue
+            
+            # Get difficulty
+            difficulty = None
+            difficulty_selectors = [
+                ".algorithm-level", ".level", "[class*='level']", 
+                ".difficulty", "[data-testid='level']"
+            ]
+            
+            for selector in difficulty_selectors:
+                try:
+                    diff_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    difficulty = diff_elem.text.strip()
+                    if difficulty and "Level" in difficulty:
+                        break
+                except Exception:
+                    continue
+            
+            # Get description (partial)
+            description = None
+            desc_selectors = [
+                ".guide-section-description", ".algorithm-description",
+                ".lesson-content", "[data-cy='algorithm-description']",
+                ".content", ".markdown"
+            ]
+            
+            for selector in desc_selectors:
+                try:
+                    desc_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    desc_text = desc_elem.text.strip()
+                    if desc_text and len(desc_text) > 10:
+                        description = desc_text[:800]  # First 800 chars
+                        break
+                except Exception:
+                    continue
+            
+            return ProblemInfo(
+                site="Programmers",
+                problem_id=problem_id,
+                title=title,
+                url=url,
+                difficulty=difficulty,
+                description=description
+            )
+            
+        except Exception as e:
+            return ProblemInfo(
+                site="Programmers",
+                problem_id="error",
+                title="Crawling failed",
+                url=url,
+                success=False,
+                error_message=str(e)
+            )
+
+
+class LeetCodeCrawler(BaseCrawler):
+    """Crawler for LeetCode (leetcode.com)."""
+    
+    def supports_url(self, url: str) -> bool:
+        return "leetcode.com" in url
+    
+    def crawl(self, url: str) -> ProblemInfo:
+        """Crawl LeetCode problem information."""
+        try:
+            self.driver.get(url)
+            time.sleep(8)  # GraphQL and React loading wait
+            
+            # Extract problem ID
+            problem_match = re.search(r"/problems/([^/]+)", url)
+            problem_id = problem_match.group(1) if problem_match else "unknown"
+            
+            # Get title
+            title = "제목 추출 실패"
+            title_selectors = [
+                "[data-cy='question-title']",
+                ".text-title-large",
+                ".mr-2",
+                "h1",
+                ".css-v3d350",
+                ".question-title",
+            ]
+            
+            for selector in title_selectors:
+                try:
+                    title_elem = self.wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                    )
+                    potential_title = title_elem.text.strip()
+                    if (potential_title and 
+                        not potential_title.startswith("Sign") and 
+                        len(potential_title) > 3):
+                        # Remove problem number if included
+                        clean_title = re.sub(r"^\d+\.\s*", "", potential_title)
+                        title = clean_title if clean_title else potential_title
+                        break
+                except Exception:
+                    continue
+            
+            # Get difficulty
+            difficulty = None
+            diff_selectors = [
+                ".text-olive",   # Easy
+                ".text-yellow",  # Medium
+                ".text-pink",    # Hard
+                "[diff='1']", "[diff='2']", "[diff='3']",
+                ".difficulty",
+            ]
+            
+            for selector in diff_selectors:
+                try:
+                    diff_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    if "olive" in selector:
+                        difficulty = "Easy"
+                    elif "yellow" in selector:
+                        difficulty = "Medium"
+                    elif "pink" in selector:
+                        difficulty = "Hard"
+                    else:
+                        difficulty = diff_elem.text.strip()
+                    
+                    if difficulty:
+                        break
+                except Exception:
+                    continue
+            
+            # Get description (limited)
+            description = None
+            desc_selectors = [
+                ".question-content",
+                ".content__u3I1",
+                "[data-track-load='description_content']",
+                ".elfjS",
+            ]
+            
+            for selector in desc_selectors:
+                try:
+                    desc_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    desc_text = desc_elem.text.strip()
+                    if desc_text and len(desc_text) > 20:
+                        description = desc_text[:1000]  # First 1000 chars
+                        break
+                except Exception:
+                    continue
+            
+            if not description:
+                description = "로그인이 필요하거나 JavaScript 렌더링 지연으로 인해 상세 정보 추출 제한"
+            
+            return ProblemInfo(
+                site="LeetCode",
+                problem_id=problem_id,
+                title=title,
+                url=url,
+                difficulty=difficulty,
+                description=description
+            )
+            
+        except Exception as e:
+            return ProblemInfo(
+                site="LeetCode",
+                problem_id="error",
+                title="Crawling failed",
+                url=url,
+                success=False,
+                error_message=str(e)
+            )
+
+
+class CodeforcesCrawler(BaseCrawler):
+    """Crawler for Codeforces (codeforces.com)."""
+    
+    def supports_url(self, url: str) -> bool:
+        return "codeforces.com" in url
+    
+    def crawl(self, url: str) -> ProblemInfo:
+        """Crawl Codeforces problem information."""
+        try:
+            self.driver.get(url)
+            
+            # Extract problem ID
+            problem_match = re.search(r"/problem/([^/]+/[^/]+)", url)
+            if not problem_match:
+                problem_match = re.search(r"/contest/(\d+)/problem/([A-Z]+)", url)
+                problem_id = (
+                    f"{problem_match.group(1)}{problem_match.group(2)}"
+                    if problem_match else "unknown"
+                )
+            else:
+                problem_id = problem_match.group(1)
+            
+            # Get title
+            title = self.wait.until(
+                EC.presence_of_element_located(
+                    (By.CSS_SELECTOR, ".problem-statement .title")
+                )
+            ).text.strip()
+            
+            # Get time/memory limits
+            time_limit = memory_limit = None
+            try:
+                time_elem = self.driver.find_element(By.CSS_SELECTOR, ".time-limit")
+                time_limit = time_elem.text.strip()
+            except Exception:
+                pass
+            
+            try:
+                memory_elem = self.driver.find_element(By.CSS_SELECTOR, ".memory-limit")
+                memory_limit = memory_elem.text.strip()
+            except Exception:
+                pass
+            
+            # Get description
+            description = None
+            try:
+                desc_elem = self.driver.find_element(By.CSS_SELECTOR, ".problem-statement")
+                paragraphs = desc_elem.find_elements(By.TAG_NAME, "p")
+                if paragraphs:
+                    description = paragraphs[0].text.strip()[:800]  # First paragraph, 800 chars
+            except Exception:
+                pass
+            
+            # Get examples
+            examples = []
+            try:
+                input_elems = self.driver.find_elements(By.CSS_SELECTOR, ".input pre")
+                output_elems = self.driver.find_elements(By.CSS_SELECTOR, ".output pre")
+                
+                for inp, out in zip(input_elems, output_elems):
+                    examples.append({
+                        "input": inp.text.strip(),
+                        "output": out.text.strip()
+                    })
+            except Exception:
+                pass
+            
+            return ProblemInfo(
+                site="Codeforces",
+                problem_id=problem_id,
+                title=title,
+                url=url,
+                description=description,
+                examples=examples,
+                time_limit=time_limit,
+                memory_limit=memory_limit
+            )
+            
+        except Exception as e:
+            return ProblemInfo(
+                site="Codeforces",
+                problem_id="error",
+                title="Crawling failed",
+                url=url,
+                success=False,
+                error_message=str(e)
+            )
+
+
+class HackerRankCrawler(BaseCrawler):
+    """Crawler for HackerRank (hackerrank.com)."""
+    
+    def supports_url(self, url: str) -> bool:
+        return "hackerrank.com" in url
+    
+    def crawl(self, url: str) -> ProblemInfo:
+        """Crawl HackerRank problem information."""
+        try:
+            self.driver.get(url)
+            time.sleep(5)  # Page loading wait
+            
+            # Extract problem ID
+            problem_match = re.search(r"/challenges/([^/]+)", url)
+            problem_id = problem_match.group(1) if problem_match else "unknown"
+            
+            # Get title
+            title = "제목 추출 실패"
+            title_selectors = [
+                ".challenge-name",
+                ".challenge-title",
+                "h1.ui-icon-label",
+                ".page-header-text",
+                "h1",
+            ]
+            
+            for selector in title_selectors:
+                try:
+                    title_elem = self.wait.until(
+                        EC.presence_of_element_located((By.CSS_SELECTOR, selector))
+                    )
+                    potential_title = title_elem.text.strip()
+                    if potential_title and len(potential_title) > 3:
+                        title = potential_title
+                        break
+                except Exception:
+                    continue
+            
+            # Get difficulty
+            difficulty = None
+            diff_selectors = [
+                ".difficulty",
+                ".challenge-difficulty",
+                "[class*='difficulty']",
+            ]
+            
+            for selector in diff_selectors:
+                try:
+                    diff_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    difficulty = diff_elem.text.strip()
+                    if difficulty:
+                        break
+                except Exception:
+                    continue
+            
+            # Get description (limited)
+            description = None
+            desc_selectors = [
+                ".challenge-text",
+                ".problem-statement",
+                ".challenge-body-html",
+                ".content",
+            ]
+            
+            for selector in desc_selectors:
+                try:
+                    desc_elem = self.driver.find_element(By.CSS_SELECTOR, selector)
+                    desc_text = desc_elem.text.strip()
+                    if desc_text and len(desc_text) > 20:
+                        description = desc_text[:800]  # First 800 chars
+                        break
+                except Exception:
+                    continue
+            
+            return ProblemInfo(
+                site="HackerRank",
+                problem_id=problem_id,
+                title=title,
+                url=url,
+                difficulty=difficulty,
+                description=description
+            )
+            
+        except Exception as e:
+            return ProblemInfo(
+                site="HackerRank",
+                problem_id="error",
+                title="Crawling failed",
+                url=url,
+                success=False,
+                error_message=str(e)
+            )
+
+
 class CrawlerService:
     """Main crawler service for online judge platforms."""
     
     SUPPORTED_PLATFORMS = {
         "acmicpc.net": "Baekjoon",
         "www.acmicpc.net": "Baekjoon",
+        "programmers.co.kr": "Programmers",
+        "school.programmers.co.kr": "Programmers",
+        "leetcode.com": "LeetCode",
+        "www.leetcode.com": "LeetCode",
+        "codeforces.com": "Codeforces",
+        "www.codeforces.com": "Codeforces",
+        "hackerrank.com": "HackerRank",
+        "www.hackerrank.com": "HackerRank",
     }
     
     def __init__(self, config: AppConfig):
@@ -293,6 +691,10 @@ class CrawlerService:
             # Initialize crawlers
             self._crawlers = [
                 BaekjoonCrawler(self._driver, self._wait),
+                ProgrammersCrawler(self._driver, self._wait),
+                LeetCodeCrawler(self._driver, self._wait),
+                CodeforcesCrawler(self._driver, self._wait),
+                HackerRankCrawler(self._driver, self._wait),
             ]
             
             logger.info("✅ Chrome WebDriver initialized successfully")

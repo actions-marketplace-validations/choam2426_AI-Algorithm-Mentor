@@ -19,8 +19,11 @@
 - Code convention and readability improvement recommendations
 
 ### 🌐 **Multi-Platform Support**
-- **Baekjoon** (acmicpc.net) - Full support (automatic problem info extraction)
-- **Programmers, LeetCode, Codeforces, HackerRank** - URL detection support (general code review)
+- **Baekjoon** (acmicpc.net) - Full support
+- **Programmers** (programmers.co.kr) - Supported
+- **LeetCode** (leetcode.com) - Supported
+- **Codeforces** (codeforces.com) - Supported
+- **HackerRank** (hackerrank.com) - Supported
 
 ### 🤖 **Multi-LLM Support**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
@@ -224,9 +227,7 @@ AI-Algorithm-Mentor/
 
 ### Supported Languages & Platforms
 - **Programming Languages**: Python, Java, C++, C, JavaScript, Go, Rust
-- **Problem Platforms**: 
-  - Baekjoon (full support - automatic problem info extraction)
-  - Programmers, LeetCode, Codeforces, HackerRank (URL detection)
+- **Problem Platforms**: Baekjoon, Programmers, LeetCode, Codeforces, HackerRank
 - **Review Languages**: Korean, English
 
 ### Performance Metrics

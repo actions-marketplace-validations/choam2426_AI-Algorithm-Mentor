@@ -19,8 +19,11 @@
 - 코딩 컨벤션 및 가독성 개선 제안
 
 ### 🌐 **다중 플랫폼 지원**
-- **백준** (acmicpc.net) - 완전 지원 (문제 정보 자동 추출)
-- **프로그래머스, LeetCode, Codeforces, HackerRank** - URL 감지 지원 (일반 코드 리뷰)
+- **백준** (acmicpc.net) - 완전 지원
+- **프로그래머스** (programmers.co.kr) - 지원
+- **LeetCode** (leetcode.com) - 지원
+- **Codeforces** (codeforces.com) - 지원
+- **HackerRank** (hackerrank.com) - 지원
 
 ### 🤖 **다중 AI 모델 지원**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
@@ -224,9 +227,7 @@ AI-Algorithm-Mentor/
 
 ### 지원 언어 및 플랫폼
 - **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
-- **문제 플랫폼**: 
-  - 백준 (완전 지원 - 문제 정보 자동 추출)
-  - 프로그래머스, LeetCode, Codeforces, HackerRank (URL 감지)
+- **문제 플랫폼**: 백준, 프로그래머스, LeetCode, Codeforces, HackerRank
 - **리뷰 언어**: 한국어, 영어
 
 ### 성능 지표
