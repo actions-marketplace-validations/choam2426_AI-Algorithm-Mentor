@@ -67,25 +67,26 @@
        permissions:
          contents: write
        steps:
-         - uses: choam2426/AI-Algorithm-Mentor@v3
+         - uses: choam2426/AI-Algorithm-Mentor@v4
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              LLM_PROVIDER: openai              # openai, google, anthropic
              LLM_MODEL: gpt-4o                 # 모델명 (선택사항)
              OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-             REVIEW_LANGUAGE: korean           # korean, english
+             REVIEW_LANGUAGE: korean           # korean, english, etc..
    ```
 
 ### 3. 코드 작성 및 커밋
 
-백준허브나 직접 커밋으로 알고리즘 문제 풀이를 올리면 자동으로 AI 리뷰가 생성됩니다!
+직접 커밋으로 알고리즘 문제 풀이를 올리면 자동으로 AI 리뷰가 생성됩니다!
 
+❗❗❗코드의 첫 줄에는 반드시 해당 문제의 url을 주석으로 추가해주세요!❗❗❗
 ---
 
 ## 📖 리뷰 예시
 
 ```python
-# 백준 1000번: A+B
+# https://www.acmicpc.net/problem/1000
 a, b = map(int, input().split())
 print(a + b)
 ```
@@ -127,7 +128,7 @@ strategy:
       { provider: google, model: gemini-2.5-pro, key: GOOGLE_API_KEY }
     ]
 steps:
-  - uses: choam2426/AI-Algorithm-Mentor@v3
+  - uses: choam2426/AI-Algorithm-Mentor@v4
     with:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       LLM_PROVIDER: ${{ matrix.llm.provider }}
@@ -216,7 +217,7 @@ AI-Algorithm-Mentor/
 
 - **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
 - **문제 플랫폼**: 백준, 프로그래머스, LeetCode, Codeforces, HackerRank
-- **리뷰 언어**: 한국어, 영어
+- **리뷰 언어**: 한국어, 영어 등등 LLM이 지원하는 언어
 
 ---
 
@@ -233,5 +234,4 @@ AI-Algorithm-Mentor/
 
 ### 관련 프로젝트
 
-- [백준허브](https://github.com/BaekjoonHub/BaekjoonHub) - 백준 문제 자동 커밋
-- [사용 예시](https://github.com/choam2426/OnlineJudge) - 실제 사용 사례
+- [사용 예시](https://github.com/choam2426/OnlineJudge) - 개발자가 실제 사용하고 있는 레포
