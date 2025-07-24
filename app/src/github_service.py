@@ -51,7 +51,7 @@ def get_current_commit_diff() -> dict[str, str]:
     return file_contents
 
 
-def write_comment_in_commit(comment: str) -> None:
+def write_comment_in_commit(comment: str) -> bool:
     url = (
         f"https://api.github.com/repos/{REPOSITORY_NAME}/commits/{COMMIT_SHA}/comments"
     )
