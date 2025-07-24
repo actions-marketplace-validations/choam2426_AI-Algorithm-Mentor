@@ -19,8 +19,8 @@
 - Code convention and readability improvement recommendations
 
 ### 🌐 **Multi-Platform Support**
-- **Baekjoon** (acmicpc.net) - Full support
-- **Programmers, LeetCode, Codeforces, HackerRank** - Coming soon
+- **Baekjoon** (acmicpc.net) - Full support (automatic problem info extraction)
+- **Programmers, LeetCode, Codeforces, HackerRank** - URL detection support (general code review)
 
 ### 🤖 **Multi-LLM Support**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
@@ -66,7 +66,7 @@ Get an API key from one of the supported AI providers:
        permissions:
          contents: write
        steps:
-         - uses: choam2426/AI-Algorithm-Mentor@v4
+         - uses: choam2426/AI-Algorithm-Mentor@v3
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              LLM_PROVIDER: openai              # openai, google, anthropic
@@ -110,12 +110,11 @@ print(a + b)
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
 | `LLM_PROVIDER` | AI provider | `openai` | `openai`, `google`, `anthropic` |
-| `LLM_MODEL` | Model to use | Provider default | `gpt-4o`, `gemini-2.0-flash-exp` |
-| `LLM_TEMPERATURE` | Creativity level | `0.1` | `0.0` ~ `2.0` |
-| `LLM_MAX_TOKENS` | Maximum tokens | `2000` | `1000` ~ `4000` |
+| `LLM_MODEL` | Model to use | `gpt-4o` | `gpt-4o`, `gpt-4o-mini`, `gemini-2.5-pro`, `claude-3-sonnet` |
 | `REVIEW_LANGUAGE` | Review language | `english` | `korean`, `english` |
-| `CRAWLER_HEADLESS` | Headless mode | `true` | `true`, `false` |
-| `CRAWLER_TIMEOUT` | Crawling timeout | `15` | seconds |
+| `OPENAI_API_KEY` | OpenAI API key | - | Required (when using openai) |
+| `GOOGLE_API_KEY` | Google AI API key | - | Required (when using google) |
+| `ANTHROPIC_API_KEY` | Anthropic API key | - | Required (when using anthropic) |
 
 ### Multi-Model Workflow Example
 
@@ -127,7 +126,7 @@ strategy:
       { provider: google, model: gemini-2.0-flash-exp, key: GOOGLE_API_KEY }
     ]
 steps:
-  - uses: choam2426/AI-Algorithm-Mentor@v4
+  - uses: choam2426/AI-Algorithm-Mentor@v3
     with:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       LLM_PROVIDER: ${{ matrix.llm.provider }}
@@ -224,8 +223,10 @@ AI-Algorithm-Mentor/
 ## 📊 Usage Statistics & Performance
 
 ### Supported Languages & Platforms
-- **Programming Languages**: Python, Java, C++, JavaScript, Go, Rust, etc.
-- **Problem Platforms**: Baekjoon (full support), Programmers, LeetCode, etc.
+- **Programming Languages**: Python, Java, C++, C, JavaScript, Go, Rust
+- **Problem Platforms**: 
+  - Baekjoon (full support - automatic problem info extraction)
+  - Programmers, LeetCode, Codeforces, HackerRank (URL detection)
 - **Review Languages**: Korean, English
 
 ### Performance Metrics

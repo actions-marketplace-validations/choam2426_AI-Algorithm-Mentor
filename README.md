@@ -19,8 +19,8 @@
 - 코딩 컨벤션 및 가독성 개선 제안
 
 ### 🌐 **다중 플랫폼 지원**
-- **백준** (acmicpc.net) - 완전 지원
-- **프로그래머스, LeetCode, Codeforces, HackerRank** - 확장 예정
+- **백준** (acmicpc.net) - 완전 지원 (문제 정보 자동 추출)
+- **프로그래머스, LeetCode, Codeforces, HackerRank** - URL 감지 지원 (일반 코드 리뷰)
 
 ### 🤖 **다중 AI 모델 지원**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
@@ -66,7 +66,7 @@
        permissions:
          contents: write
        steps:
-         - uses: choam2426/AI-Algorithm-Mentor@v4
+         - uses: choam2426/AI-Algorithm-Mentor@v3
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              LLM_PROVIDER: openai              # openai, google, anthropic
@@ -110,12 +110,11 @@ print(a + b)
 | 변수명 | 설명 | 기본값 | 예시 |
 |--------|------|-------|------|
 | `LLM_PROVIDER` | AI 제공자 | `openai` | `openai`, `google`, `anthropic` |
-| `LLM_MODEL` | 사용할 모델 | 제공자별 기본값 | `gpt-4o`, `gemini-2.0-flash-exp` |
-| `LLM_TEMPERATURE` | 창의성 수준 | `0.1` | `0.0` ~ `2.0` |
-| `LLM_MAX_TOKENS` | 최대 토큰 수 | `2000` | `1000` ~ `4000` |
+| `LLM_MODEL` | 사용할 모델 | `gpt-4o` | `gpt-4o`, `gpt-4o-mini`, `gemini-2.5-pro`, `claude-3-sonnet` |
 | `REVIEW_LANGUAGE` | 리뷰 언어 | `english` | `korean`, `english` |
-| `CRAWLER_HEADLESS` | 헤드리스 모드 | `true` | `true`, `false` |
-| `CRAWLER_TIMEOUT` | 크롤링 타임아웃 | `15` | 초 단위 |
+| `OPENAI_API_KEY` | OpenAI API 키 | - | 필수 (openai 사용시) |
+| `GOOGLE_API_KEY` | Google AI API 키 | - | 필수 (google 사용시) |
+| `ANTHROPIC_API_KEY` | Anthropic API 키 | - | 필수 (anthropic 사용시) |
 
 ### 예제 워크플로우 (다중 모델)
 
@@ -127,7 +126,7 @@ strategy:
       { provider: google, model: gemini-2.0-flash-exp, key: GOOGLE_API_KEY }
     ]
 steps:
-  - uses: choam2426/AI-Algorithm-Mentor@v4
+  - uses: choam2426/AI-Algorithm-Mentor@v3
     with:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       LLM_PROVIDER: ${{ matrix.llm.provider }}
@@ -224,8 +223,10 @@ AI-Algorithm-Mentor/
 ## 📊 사용 통계 및 성과
 
 ### 지원 언어 및 플랫폼
-- **프로그래밍 언어**: Python, Java, C++, JavaScript, Go, Rust 등
-- **문제 플랫폼**: 백준(완전 지원), 프로그래머스, LeetCode 등
+- **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
+- **문제 플랫폼**: 
+  - 백준 (완전 지원 - 문제 정보 자동 추출)
+  - 프로그래머스, LeetCode, Codeforces, HackerRank (URL 감지)
 - **리뷰 언어**: 한국어, 영어
 
 ### 성능 지표
