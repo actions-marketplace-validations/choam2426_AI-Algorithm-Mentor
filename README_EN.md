@@ -67,25 +67,27 @@ Get an API key from one of the supported AI providers:
        permissions:
          contents: write
        steps:
-         - uses: choam2426/AI-Algorithm-Mentor@v3
+         - uses: choam2426/AI-Algorithm-Mentor@v4
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              LLM_PROVIDER: openai              # openai, google, anthropic
              LLM_MODEL: gpt-4o                 # model name (optional)
              OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-             REVIEW_LANGUAGE: english          # korean, english
+             REVIEW_LANGUAGE: english          # korean, english, etc..
    ```
 
 ### 3. Code and Commit
 
-Upload your algorithm solutions via BaekjoonHub or direct commits, and AI reviews will be generated automatically!
+Upload your algorithm solutions via direct commits, and AI reviews will be generated automatically!
+
+❗❗❗Please make sure to add the problem URL as a comment in the first line of your code!❗❗❗
 
 ---
 
 ## 📖 Review Example
 
 ```python
-# Baekjoon 1000: A+B
+# https://www.acmicpc.net/problem/1000
 a, b = map(int, input().split())
 print(a + b)
 ```
@@ -127,7 +129,7 @@ strategy:
       { provider: google, model: gemini-2.5-pro, key: GOOGLE_API_KEY }
     ]
 steps:
-  - uses: choam2426/AI-Algorithm-Mentor@v3
+  - uses: choam2426/AI-Algorithm-Mentor@v4
     with:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       LLM_PROVIDER: ${{ matrix.llm.provider }}
@@ -216,7 +218,7 @@ AI-Algorithm-Mentor/
 
 - **Programming Languages**: Python, Java, C++, C, JavaScript, Go, Rust
 - **Problem Platforms**: Baekjoon, Programmers, LeetCode, Codeforces, HackerRank
-- **Review Languages**: Korean, English
+- **Review Languages**: Korean, English, and other languages supported by LLMs
 
 ---
 
@@ -233,5 +235,4 @@ This project is distributed under the [MIT License](LICENSE).
 
 ### Related Projects
 
-- [BaekjoonHub](https://github.com/BaekjoonHub/BaekjoonHub) - Auto-commit Baekjoon problems
-- [Usage Example](https://github.com/choam2426/OnlineJudge) - Real-world usage example
+- [Usage Example](https://github.com/choam2426/OnlineJudge) - Repository where the developer actively uses this tool
