@@ -21,7 +21,7 @@ __version__ = "1.0.0"
 __author__ = "AI Algorithm Mentor Team"
 
 # Core components
-from .config import AppConfig, LLMProvider, Language
+from .config import AppConfig, LLMProvider
 from .exceptions import (
     AIAlgorithmMentorError,
     ConfigurationError,
@@ -45,7 +45,6 @@ __all__ = [
     
     # Enums
     "LLMProvider",
-    "Language",
     
     # Exceptions
     "AIAlgorithmMentorError",

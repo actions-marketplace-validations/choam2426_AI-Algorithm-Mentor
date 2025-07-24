@@ -34,7 +34,7 @@ COPY ./app /app
 RUN pip install uv
 
 # Install Python dependencies using uv
-RUN cd /app && uv pip install --system -r pyproject.toml
+RUN cd /app && uv pip install --system -e .
 
 # Set environment variables for Chrome
 ENV DISPLAY=:99
@@ -47,7 +47,7 @@ RUN useradd --create-home --shell /bin/bash appuser \
 USER appuser
 
 # Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import sys; sys.exit(0)"
+HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
+    CMD python -c "from src.config import AppConfig; AppConfig.from_environment(); print('Health check passed')" || exit 1
 
 CMD ["python", "/app/main.py"]

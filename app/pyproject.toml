@@ -3,10 +3,10 @@ name = "algorithm-code-review"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.13"
+requires-python = ">=3.11"
 dependencies = [
     "beautifulsoup4>=4.13.4",
-    "dotenv>=0.9.9",
+    "python-dotenv>=1.0.0",
     "httpx>=0.28.1",
     "jsonpatch>=1.33",
     "langchain>=0.3.26",
