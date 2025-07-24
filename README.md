@@ -5,7 +5,6 @@
 
 [![GitHub release](https://img.shields.io/github/release/choam2426/AI-Algorithm-Mentor.svg)](https://github.com/choam2426/AI-Algorithm-Mentor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/choam2426/AI-Algorithm-Mentor.svg)](https://github.com/choam2426/AI-Algorithm-Mentor/stargazers)
 
 [🌍 **English Version**](./README_EN.md) | **한국어**
 
@@ -27,18 +26,17 @@
 
 ### 🤖 **다중 AI 모델 지원**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
-- **Google AI** (Gemini-2.0-Flash, Gemini-Pro)
-- **Anthropic** (Claude-3.5-Sonnet, Claude-3-Opus)
+- **Google AI** (Gemini-2.5-Pro)
+- **Anthropic** (Claude-3-Sonnet)
 
 ### 🌏 **다국어 리뷰**
 - 한국어 및 영어 리뷰 지원
-- 문화적 맥락을 고려한 자연스러운 피드백
 
 ---
 
-## 🚀 빠른 시작
+## 🚀 사용 방법
 
-### 1️⃣ API 키 준비
+### 1. API 키 준비
 
 지원하는 AI 제공자 중 하나의 API 키를 준비하세요:
 
@@ -48,7 +46,7 @@
 | **Google AI** | [Google AI Studio](https://aistudio.google.com/) | `GOOGLE_API_KEY` |
 | **Anthropic** | [Anthropic Console](https://console.anthropic.com/) | `ANTHROPIC_API_KEY` |
 
-### 2️⃣ GitHub Repository 설정
+### 2. GitHub Repository 설정
 
 1. **Secrets 등록**: Repository → Settings → Secrets and variables → Actions
    ```
@@ -78,7 +76,7 @@
              REVIEW_LANGUAGE: korean           # korean, english
    ```
 
-### 3️⃣ 코드 작성 및 커밋
+### 3. 코드 작성 및 커밋
 
 백준허브나 직접 커밋으로 알고리즘 문제 풀이를 올리면 자동으로 AI 리뷰가 생성됩니다!
 
@@ -106,9 +104,9 @@ print(a + b)
 
 ---
 
-## ⚙️ 고급 설정
+## ⚙️ 설정 옵션
 
-### 환경 변수 옵션
+### 환경 변수
 
 | 변수명 | 설명 | 기본값 | 예시 |
 |--------|------|-------|------|
@@ -119,14 +117,14 @@ print(a + b)
 | `GOOGLE_API_KEY` | Google AI API 키 | - | 필수 (google 사용시) |
 | `ANTHROPIC_API_KEY` | Anthropic API 키 | - | 필수 (anthropic 사용시) |
 
-### 예제 워크플로우 (다중 모델)
+### 다중 모델 사용 예시
 
 ```yaml
 strategy:
   matrix:
     llm: [
       { provider: openai, model: gpt-4o, key: OPENAI_API_KEY },
-      { provider: google, model: gemini-2.0-flash-exp, key: GOOGLE_API_KEY }
+      { provider: google, model: gemini-2.5-pro, key: GOOGLE_API_KEY }
     ]
 steps:
   - uses: choam2426/AI-Algorithm-Mentor@v3
@@ -140,8 +138,6 @@ steps:
 ---
 
 ## 🏗️ 아키텍처
-
-### 핵심 컴포넌트
 
 ```mermaid
 graph TD
@@ -157,40 +153,34 @@ graph TD
     
     E --> E1[백준 크롤러]
     E --> E2[프로그래머스 크롤러]
-    E --> E3[확장 가능한 구조]
+    E --> E3[LeetCode 크롤러]
+    E --> E4[Codeforces 크롤러]
+    E --> E5[HackerRank 크롤러]
     
     F --> F1[OpenAI]
     F --> F2[Google AI]
     F --> F3[Anthropic]
 ```
 
-### 주요 특징
-
-- **🔧 의존성 주입**: 모든 컴포넌트가 설정 기반으로 동작
-- **🏭 팩토리 패턴**: 확장 가능한 LLM 및 크롤러 아키텍처  
-- **🛡️ 타입 안전성**: 완전한 타입 힌트와 검증
-- **📊 구조화된 로깅**: 디버깅과 모니터링 최적화
-- **🔄 호환성 유지**: 기존 API와의 하위 호환성
-
 ---
 
-## 🧪 개발 및 기여
+## 🛠️ 개발
 
-### 로컬 개발 환경 설정
+### 로컬 실행
 
 ```bash
 # 레포지토리 클론
 git clone https://github.com/choam2426/AI-Algorithm-Mentor.git
 cd AI-Algorithm-Mentor
 
-# 의존성 설치 (uv 사용 권장)
+# 의존성 설치
 uv sync
 
 # 환경 변수 설정
 cp .env.example .env
 # .env 파일에 API 키 입력
 
-# 테스트 실행
+# 실행
 python app/main.py
 ```
 
@@ -214,26 +204,19 @@ AI-Algorithm-Mentor/
 └── action.yml                # GitHub Action 정의
 ```
 
-### 기여 방법
+### 기여하기
 
-1. **Fork** 후 **feature branch** 생성
-2. **변경사항 구현** 및 **테스트 작성**
-3. **커밋 메시지** 규칙 준수 (Conventional Commits)
-4. **Pull Request** 생성
+1. Fork 후 feature branch 생성
+2. 변경사항 구현 및 테스트
+3. Pull Request 생성
 
 ---
 
-## 📊 사용 통계 및 성과
+## 📋 지원 범위
 
-### 지원 언어 및 플랫폼
 - **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
 - **문제 플랫폼**: 백준, 프로그래머스, LeetCode, Codeforces, HackerRank
 - **리뷰 언어**: 한국어, 영어
-
-### 성능 지표
-- **평균 리뷰 시간**: < 30초
-- **정확도**: 95%+ (문제 인식 및 분석)
-- **사용자 만족도**: ⭐⭐⭐⭐⭐ (4.8/5.0)
 
 ---
 
@@ -243,21 +226,12 @@ AI-Algorithm-Mentor/
 
 ---
 
-## 🤝 지원 및 문의
+## 📞 문의
 
-### 문제 신고 및 기능 요청
-- [GitHub Issues](https://github.com/choam2426/AI-Algorithm-Mentor/issues)
-
-### 개발자 정보
+- **Issues**: [GitHub Issues](https://github.com/choam2426/AI-Algorithm-Mentor/issues)
 - **개발자**: [choam2426](https://github.com/choam2426)
-- **이메일**: choam2426@gmail.com
 
 ### 관련 프로젝트
+
 - [백준허브](https://github.com/BaekjoonHub/BaekjoonHub) - 백준 문제 자동 커밋
-- [예제 저장소](https://github.com/choam2426/OnlineJudge) - 실제 사용 사례
-
----
-
-**⭐ 이 프로젝트가 도움이 되었다면 Star를 눌러주세요!**
-
-*AI Algorithm Mentor는 알고리즘 학습자들의 성장을 위해 지속적으로 발전하고 있습니다.*
+- [사용 예시](https://github.com/choam2426/OnlineJudge) - 실제 사용 사례

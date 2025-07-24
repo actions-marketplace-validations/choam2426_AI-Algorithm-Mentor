@@ -5,7 +5,6 @@
 
 [![GitHub release](https://img.shields.io/github/release/choam2426/AI-Algorithm-Mentor.svg)](https://github.com/choam2426/AI-Algorithm-Mentor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/choam2426/AI-Algorithm-Mentor.svg)](https://github.com/choam2426/AI-Algorithm-Mentor/stargazers)
 
 **English** | [🇰🇷 **한국어 버전**](./README.md)
 
@@ -27,18 +26,17 @@
 
 ### 🤖 **Multi-LLM Support**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
-- **Google AI** (Gemini-2.0-Flash, Gemini-Pro)
-- **Anthropic** (Claude-3.5-Sonnet, Claude-3-Opus)
+- **Google AI** (Gemini-2.5-Pro)
+- **Anthropic** (Claude-3-Sonnet)
 
 ### 🌏 **Multilingual Reviews**
 - Korean and English review support
-- Culturally aware and natural feedback
 
 ---
 
-## 🚀 Quick Start
+## 🚀 Usage
 
-### 1️⃣ Prepare API Key
+### 1. Prepare API Key
 
 Get an API key from one of the supported AI providers:
 
@@ -48,7 +46,7 @@ Get an API key from one of the supported AI providers:
 | **Google AI** | [Google AI Studio](https://aistudio.google.com/) | `GOOGLE_API_KEY` |
 | **Anthropic** | [Anthropic Console](https://console.anthropic.com/) | `ANTHROPIC_API_KEY` |
 
-### 2️⃣ GitHub Repository Setup
+### 2. GitHub Repository Setup
 
 1. **Add Secrets**: Repository → Settings → Secrets and variables → Actions
    ```
@@ -78,7 +76,7 @@ Get an API key from one of the supported AI providers:
              REVIEW_LANGUAGE: english          # korean, english
    ```
 
-### 3️⃣ Code and Commit
+### 3. Code and Commit
 
 Upload your algorithm solutions via BaekjoonHub or direct commits, and AI reviews will be generated automatically!
 
@@ -106,9 +104,9 @@ print(a + b)
 
 ---
 
-## ⚙️ Advanced Configuration
+## ⚙️ Configuration
 
-### Environment Variable Options
+### Environment Variables
 
 | Variable | Description | Default | Example |
 |----------|-------------|---------|---------|
@@ -119,14 +117,14 @@ print(a + b)
 | `GOOGLE_API_KEY` | Google AI API key | - | Required (when using google) |
 | `ANTHROPIC_API_KEY` | Anthropic API key | - | Required (when using anthropic) |
 
-### Multi-Model Workflow Example
+### Multi-Model Usage Example
 
 ```yaml
 strategy:
   matrix:
     llm: [
       { provider: openai, model: gpt-4o, key: OPENAI_API_KEY },
-      { provider: google, model: gemini-2.0-flash-exp, key: GOOGLE_API_KEY }
+      { provider: google, model: gemini-2.5-pro, key: GOOGLE_API_KEY }
     ]
 steps:
   - uses: choam2426/AI-Algorithm-Mentor@v3
@@ -140,8 +138,6 @@ steps:
 ---
 
 ## 🏗️ Architecture
-
-### Core Components
 
 ```mermaid
 graph TD
@@ -157,40 +153,34 @@ graph TD
     
     E --> E1[Baekjoon Crawler]
     E --> E2[Programmers Crawler]
-    E --> E3[Extensible Architecture]
+    E --> E3[LeetCode Crawler]
+    E --> E4[Codeforces Crawler]
+    E --> E5[HackerRank Crawler]
     
     F --> F1[OpenAI]
     F --> F2[Google AI]
     F --> F3[Anthropic]
 ```
 
-### Key Features
-
-- **🔧 Dependency Injection**: All components operate based on configuration
-- **🏭 Factory Pattern**: Extensible LLM and crawler architecture
-- **🛡️ Type Safety**: Complete type hints and validation
-- **📊 Structured Logging**: Optimized for debugging and monitoring
-- **🔄 Backward Compatibility**: Maintains compatibility with existing APIs
-
 ---
 
-## 🧪 Development & Contribution
+## 🛠️ Development
 
-### Local Development Setup
+### Local Development
 
 ```bash
 # Clone repository
 git clone https://github.com/choam2426/AI-Algorithm-Mentor.git
 cd AI-Algorithm-Mentor
 
-# Install dependencies (uv recommended)
+# Install dependencies
 uv sync
 
 # Set environment variables
 cp .env.example .env
 # Add API keys to .env file
 
-# Run tests
+# Run
 python app/main.py
 ```
 
@@ -214,26 +204,19 @@ AI-Algorithm-Mentor/
 └── action.yml                # GitHub Action definition
 ```
 
-### How to Contribute
+### Contributing
 
-1. **Fork** and create a **feature branch**
-2. **Implement changes** and **write tests**
-3. Follow **commit message** conventions (Conventional Commits)
-4. Create a **Pull Request**
+1. Fork and create feature branch
+2. Implement changes and tests
+3. Create Pull Request
 
 ---
 
-## 📊 Usage Statistics & Performance
+## 📋 Support
 
-### Supported Languages & Platforms
 - **Programming Languages**: Python, Java, C++, C, JavaScript, Go, Rust
 - **Problem Platforms**: Baekjoon, Programmers, LeetCode, Codeforces, HackerRank
 - **Review Languages**: Korean, English
-
-### Performance Metrics
-- **Average Review Time**: < 30 seconds
-- **Accuracy**: 95%+ (problem recognition and analysis)
-- **User Satisfaction**: ⭐⭐⭐⭐⭐ (4.8/5.0)
 
 ---
 
@@ -243,21 +226,12 @@ This project is distributed under the [MIT License](LICENSE).
 
 ---
 
-## 🤝 Support & Contact
+## 📞 Contact
 
-### Issue Reports & Feature Requests
-- [GitHub Issues](https://github.com/choam2426/AI-Algorithm-Mentor/issues)
-
-### Developer Information
+- **Issues**: [GitHub Issues](https://github.com/choam2426/AI-Algorithm-Mentor/issues)
 - **Developer**: [choam2426](https://github.com/choam2426)
-- **Email**: choam2426@gmail.com
 
 ### Related Projects
+
 - [BaekjoonHub](https://github.com/BaekjoonHub/BaekjoonHub) - Auto-commit Baekjoon problems
-- [Example Repository](https://github.com/choam2426/OnlineJudge) - Real-world usage example
-
----
-
-**⭐ If this project helped you, please give it a star!**
-
-*AI Algorithm Mentor continues to evolve for the growth of algorithm learners.*
+- [Usage Example](https://github.com/choam2426/OnlineJudge) - Real-world usage example
