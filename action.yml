@@ -1,19 +1,43 @@
-name: "chatGPT Algorithm Mentor"
-description: "algorithm code review using chatGPT"
+name: "AI Algorithm Mentor"
+description: "algorithm code review using LLM"
 author: "choam2426"
 inputs:
   GITHUB_TOKEN:
-    description: "github token"
+    description: "GitHub personal access token for repository access"
     required: true
+  LLM_PROVIDER:
+    description: "AI model provider to use for code review (openai, google, anthropic)"
+    required: true
+    default: "openai"
+  LLM_MODEL:
+    description: "AI model to use (gpt-4o, gpt-4o-mini, gemini-2.5-pro, claude-3-sonnet, etc.)"
+    required: false
+    default: "gpt-4o"
   OPENAI_API_KEY:
-    description: "openai api key"
-    required: true
+    description: "OpenAI API key (required when LLM_PROVIDER is 'openai')"
+    required: false
+  GOOGLE_API_KEY:
+    description: "Google AI API key (required when LLM_PROVIDER is 'google')"
+    required: false
+  ANTHROPIC_API_KEY:
+    description: "Anthropic Claude API key (required when LLM_PROVIDER is 'anthropic')"
+    required: false
+  REVIEW_LANGUAGE:
+    description: "Language for code review comments (e.g., english, korean)"
+    required: false
+    default: "english"
+
 runs:
   using: "docker"
   image: "docker://choam2426/chatgpt_algorithm_mentor:latest"
   env:
     GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+    LLM_PROVIDER: ${{ inputs.LLM_PROVIDER }}
+    LLM_MODEL: ${{ inputs.LLM_MODEL }}
     OPENAI_API_KEY: ${{ inputs.OPENAI_API_KEY }}
+    GOOGLE_API_KEY: ${{ inputs.GOOGLE_API_KEY }}
+    ANTHROPIC_API_KEY: ${{ inputs.ANTHROPIC_API_KEY }}
+    REVIEW_LANGUAGE: ${{ inputs.REVIEW_LANGUAGE }}
 branding:
   icon: "check-circle"
   color: "blue"

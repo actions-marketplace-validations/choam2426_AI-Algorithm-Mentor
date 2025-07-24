@@ -1,0 +1,18 @@
+[project]
+name = "algorithm-code-review"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.13.4",
+    "python-dotenv>=1.0.0",
+    "httpx>=0.28.1",
+    "jsonpatch>=1.33",
+    "langchain>=0.3.26",
+    "langchain-anthropic>=0.3.17",
+    "langchain-google-genai>=2.1.8",
+    "langchain-openai>=0.3.28",
+    "pydantic>=2.11.7",
+    "selenium==4.34.2",
+]

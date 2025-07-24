@@ -1,6 +1,0 @@
-import os
-
-GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
-COMMIT_SHA = os.getenv("GITHUB_SHA")
-REPOSITORY_NAME = os.getenv("GITHUB_REPOSITORY")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
