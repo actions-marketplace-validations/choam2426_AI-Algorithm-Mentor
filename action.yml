@@ -37,6 +37,7 @@ runs:
     OPENAI_API_KEY: ${{ inputs.OPENAI_API_KEY }}
     GOOGLE_API_KEY: ${{ inputs.GOOGLE_API_KEY }}
     ANTHROPIC_API_KEY: ${{ inputs.ANTHROPIC_API_KEY }}
+    REVIEW_LANGUAGE: ${{ inputs.REVIEW_LANGUAGE }}
 branding:
   icon: "check-circle"
   color: "blue"

@@ -129,15 +129,15 @@ class AppConfig:
                 provider=provider,
                 model=model,
                 api_key=api_key,
-                temperature=float(os.getenv("LLM_TEMPERATURE", "0.1")),
-                max_tokens=int(os.getenv("LLM_MAX_TOKENS", "2000"))
+                temperature=0.1,  # Fixed optimal value for code review
+                max_tokens=2000   # Fixed optimal value for detailed reviews
             )
             
-            # Crawler configuration
+            # Crawler configuration with fixed optimal values
             crawler_config = CrawlerConfig(
-                headless=os.getenv("CRAWLER_HEADLESS", "true").lower() == "true",
-                timeout=int(os.getenv("CRAWLER_TIMEOUT", "15")),
-                delay_between_requests=int(os.getenv("CRAWLER_DELAY", "2"))
+                headless=True,    # Always headless in production
+                timeout=15,       # Fixed timeout for stability
+                delay_between_requests=2  # Fixed delay for rate limiting
             )
             
             # Review language (validation handled in prompt.py)
