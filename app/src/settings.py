@@ -1,7 +1,27 @@
+"""
+Legacy settings module.
+
+This module is deprecated and kept only for backward compatibility.
+Please use the new config.py module instead.
+"""
+
 import os
+from typing import Optional, List
+from .logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class Settings:
+    """
+    Legacy Settings class.
+    
+    DEPRECATED: Use config.AppConfig instead.
+    """
+    
     def __init__(self):
+        logger.warning("🚨 Settings class is deprecated. Please migrate to config.AppConfig")
+        
         # GitHub 관련 설정
         self.github_token = os.getenv("GITHUB_TOKEN")
         self.commit_sha = os.getenv("GITHUB_SHA")
@@ -17,8 +37,7 @@ class Settings:
         # API Keys
         self.api_key = self.get_required_api_key()
 
-
-    def get_required_api_key(self):
+    def get_required_api_key(self) -> Optional[str]:
         """LLM_PROVIDER에 따라 필요한 API 키를 반환"""
         if self.llm_provider == "openai":
             return os.getenv("OPENAI_API_KEY")
@@ -29,16 +48,16 @@ class Settings:
         else:
             return None
 
-    def get_default_model_for_provider(self, provider):
+    def get_default_model_for_provider(self, provider: str) -> str:
         """Provider별 기본 모델을 반환"""
         defaults = {
             "openai": "gpt-4o",
-            "google": "gemini-2.5-pro",
-            "anthropic": "claude-opus-4-20250514"
+            "google": "gemini-2.0-flash-exp",
+            "anthropic": "claude-3-5-sonnet-20241022"
         }
         return defaults.get(provider, "gpt-4o")
 
-    def is_valid(self):
+    def is_valid(self) -> bool:
         """기본 설정이 유효한지 검증하고 에러 메시지를 출력"""
         errors = []
         
@@ -67,8 +86,8 @@ class Settings:
         
         # 에러 메시지 출력
         if errors:
-            print("Validation errors:")
+            logger.error("Validation errors:")
             for error in errors:
-                print(f"  - {error}")
+                logger.error(f"  - {error}")
         
         return len(errors) == 0

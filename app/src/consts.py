@@ -1,4 +1,17 @@
+"""
+Legacy constants module.
+
+This module is deprecated and kept only for backward compatibility.
+Please use the new config.py module instead.
+"""
+
 import os
+from .logger import get_logger
+
+logger = get_logger(__name__)
+
+# Legacy constants - deprecated
+logger.warning("🚨 consts.py is deprecated. Please migrate to config.py")
 
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 COMMIT_SHA = os.getenv("GITHUB_SHA")
