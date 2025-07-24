@@ -30,7 +30,8 @@
 - **Anthropic** (Claude-3-Sonnet)
 
 ### 🌏 **다국어 리뷰**
-- 한국어 및 영어 리뷰 지원
+- 프롬프트는 영어로 통일, 리뷰 응답 언어만 선택 가능
+- 한국어, 영어 등 LLM이 지원하는 모든 언어
 
 ---
 
@@ -217,7 +218,7 @@ AI-Algorithm-Mentor/
 
 - **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
 - **문제 플랫폼**: 백준, 프로그래머스, LeetCode, Codeforces, HackerRank
-- **리뷰 언어**: 한국어, 영어 등등 LLM이 지원하는 언어
+- **리뷰 언어**: 한국어, 영어 등 LLM이 지원하는 언어 (프롬프트는 영어 고정, 응답만 언어 변경)
 
 ---
 

@@ -104,7 +104,7 @@ class AIAlgorithmMentor:
             review = self.llm_service.generate_review(
                 problem_description=problem_description,
                 user_code=content,
-                language=self.config.review_language.value
+                language=self.config.review_language
             )
             
             logger.info("✅ Review generated successfully")

@@ -23,10 +23,7 @@ class LLMProvider(Enum):
     GOOGLE = "google"
 
 
-class Language(Enum):
-    """Supported review languages."""
-    ENGLISH = "english"
-    KOREAN = "korean"
+# Review language is now handled as simple string with validation in prompt.py
 
 
 @dataclass(frozen=True)
@@ -96,7 +93,7 @@ class AppConfig:
     github: GitHubConfig
     llm: LLMConfig
     crawler: CrawlerConfig
-    review_language: Language = Language.ENGLISH
+    review_language: str = "english"
     supported_file_extensions: tuple = (
         ".c", ".cpp", ".cc", ".cxx", ".py", ".java", ".js", ".go", ".rs"
     )
@@ -143,17 +140,8 @@ class AppConfig:
                 delay_between_requests=int(os.getenv("CRAWLER_DELAY", "2"))
             )
             
-            # Review language
-            language_str = os.getenv("REVIEW_LANGUAGE", "english").lower()
-            try:
-                review_language = Language(language_str)
-            except ValueError:
-                valid_languages = [lang.value for lang in Language]
-                logger.warning(
-                    f"Invalid review language: {language_str}. "
-                    f"Defaulting to English. Valid options: {', '.join(valid_languages)}"
-                )
-                review_language = Language.ENGLISH
+            # Review language (validation handled in prompt.py)
+            review_language = os.getenv("REVIEW_LANGUAGE", "english").lower()
             
             logger.info(f"✅ Configuration loaded successfully for {provider.value} provider")
             
@@ -237,6 +225,6 @@ class AppConfig:
                 "timeout": self.crawler.timeout,
                 "delay": self.crawler.delay_between_requests
             },
-            "review_language": self.review_language.value,
+            "review_language": self.review_language,
             "supported_extensions": self.supported_file_extensions
         }

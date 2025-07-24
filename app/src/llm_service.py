@@ -88,7 +88,7 @@ class BaseLLMService(ABC):
     def _create_system_message(self, language: str) -> SystemMessage:
         """Create system message with review instructions."""
         from .prompt import get_system_prompt
-        return SystemMessage(content=get_system_prompt(language))
+        return SystemMessage(content=get_system_prompt(response_language=language))
     
     def _create_user_message(self, problem_description: str, user_code: str) -> HumanMessage:
         """Create user message with problem and code."""

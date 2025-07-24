@@ -30,7 +30,8 @@
 - **Anthropic** (Claude-3-Sonnet)
 
 ### 🌏 **Multilingual Reviews**
-- Korean and English review support
+- Prompts are unified in English, only review response language is configurable
+- Supports Korean, English, and all languages supported by LLMs
 
 ---
 
@@ -218,7 +219,7 @@ AI-Algorithm-Mentor/
 
 - **Programming Languages**: Python, Java, C++, C, JavaScript, Go, Rust
 - **Problem Platforms**: Baekjoon, Programmers, LeetCode, Codeforces, HackerRank
-- **Review Languages**: Korean, English, and other languages supported by LLMs
+- **Review Languages**: Korean, English, and other languages supported by LLMs (prompts in English, only response language changes)
 
 ---
 
