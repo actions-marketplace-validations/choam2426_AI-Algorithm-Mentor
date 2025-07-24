@@ -1,16 +1,19 @@
-name: AI algorithm mentor
+name: 🤖 AI Algorithm Mentor
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ main, master ]
 
 jobs:
-  write_comment:
+  ai-review:
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-      - uses: choam2426/AI-Algorithm-Mentor@v3
+      - uses: choam2426/AI-Algorithm-Mentor@v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }} # OPENAI API 크레딧 
+          LLM_PROVIDER: openai              # openai, google, anthropic
+          LLM_MODEL: gpt-4o                 # 모델명 (선택사항)
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          REVIEW_LANGUAGE: korean           # korean, english, etc.. 
