@@ -1,132 +1,80 @@
-"""
-Centralized logging configuration for AI Algorithm Mentor.
+"""Pretty, minimal logging utilities for AI Algorithm Mentor.
 
-This module provides a sophisticated logging system with colored output,
-structured formatting, and appropriate log levels for different components.
+This module exposes a singleton `logger` instance with a colored,
+emoji-based console formatter. The root logger is configured once
+on import. Use `set_logger_level` to adjust the level at runtime.
 """
+
+from __future__ import annotations
 
 import logging
 import sys
-from typing import Dict, Any
-from enum import Enum
 
 
-class LogLevel(Enum):
-    """Supported log levels."""
-    DEBUG = "DEBUG"
-    INFO = "INFO"
-    WARNING = "WARNING"
-    ERROR = "ERROR"
-    CRITICAL = "CRITICAL"
+class PrettyFormatter(logging.Formatter):
+    """Formatter that prints colored, emoji-enhanced log lines."""
 
-
-class ColoredFormatter(logging.Formatter):
-    """Custom formatter with color support for different log levels."""
-    
-    # Color codes
     COLORS = {
-        'DEBUG': '\033[36m',      # Cyan
-        'INFO': '\033[32m',       # Green
-        'WARNING': '\033[33m',    # Yellow
-        'ERROR': '\033[31m',      # Red
-        'CRITICAL': '\033[35m',   # Magenta
-        'RESET': '\033[0m'        # Reset
+        "DEBUG": "\033[36m",     # Cyan
+        "INFO": "\033[32m",      # Green
+        "WARNING": "\033[33m",   # Yellow
+        "ERROR": "\033[31m",     # Red
+        "CRITICAL": "\033[35m",  # Magenta
+        "RESET": "\033[0m",
     }
-    
-    def format(self, record: logging.LogRecord) -> str:
-        """Format log record with colors and emojis."""
-        # Add emoji based on level
-        emoji_map = {
-            'DEBUG': '🐛',
-            'INFO': '✅',
-            'WARNING': '⚠️',
-            'ERROR': '❌',
-            'CRITICAL': '💥'
-        }
-        
-        # Get color and emoji
-        color = self.COLORS.get(record.levelname, '')
-        reset = self.COLORS['RESET']
-        emoji = emoji_map.get(record.levelname, '📋')
-        
-        # Format timestamp
-        timestamp = self.formatTime(record, '%Y-%m-%d %H:%M:%S')
-        
-        # Create formatted message
-        formatted_msg = (
-            f"{color}{emoji} [{timestamp}] "
-            f"{record.levelname:<8} | {record.name:<20} | "
-            f"{record.getMessage()}{reset}"
-        )
-        
-        # Add exception info if present
+
+    EMOJIS = {
+        "DEBUG": "🐛",
+        "INFO": "✅",
+        "WARNING": "⚠️",
+        "ERROR": "❌",
+        "CRITICAL": "💥",
+    }
+
+    def format(self, record: logging.LogRecord) -> str:  # type: ignore[override]
+        color = self.COLORS.get(record.levelname, "")
+        reset = self.COLORS["RESET"]
+        emoji = self.EMOJIS.get(record.levelname, "📋")
+
+        timestamp = self.formatTime(record, "%Y-%m-%d %H:%M:%S")
+        message = record.getMessage()
+
         if record.exc_info:
-            formatted_msg += f"\n{self.formatException(record.exc_info)}"
-        
-        return formatted_msg
+            message += f"\n{self.formatException(record.exc_info)}"
+
+        return (
+            f"{color}{emoji} [{timestamp}] "
+            f"{record.levelname:<8} | {record.name:<20} | {message}{reset}"
+        )
 
 
-class LoggerManager:
-    """Centralized logger management."""
-    
-    _loggers: Dict[str, logging.Logger] = {}
-    _configured = False
-    
-    @classmethod
-    def setup_logging(cls, level: str = "INFO") -> None:
-        """Setup global logging configuration."""
-        if cls._configured:
-            return
-        
-        # Create console handler
-        console_handler = logging.StreamHandler(sys.stdout)
-        console_handler.setFormatter(ColoredFormatter())
-        
-        # Configure root logger
-        root_logger = logging.getLogger()
-        root_logger.setLevel(getattr(logging, level.upper()))
-        root_logger.addHandler(console_handler)
-        
-        # Reduce noise from external libraries
-        logging.getLogger("httpx").setLevel(logging.WARNING)
-        logging.getLogger("selenium").setLevel(logging.WARNING)
-        logging.getLogger("urllib3").setLevel(logging.WARNING)
-        
-        cls._configured = True
-    
-    @classmethod
-    def get_logger(cls, name: str) -> logging.Logger:
-        """Get or create a logger with the given name."""
-        if not cls._configured:
-            cls.setup_logging()
-        
-        if name not in cls._loggers:
-            cls._loggers[name] = logging.getLogger(name)
-        
-        return cls._loggers[name]
+_configured: bool = False
 
 
-def get_logger(name: str) -> logging.Logger:
-    """Convenience function to get a logger."""
-    return LoggerManager.get_logger(name)
+def _configure_root_logger(level: str = "INFO") -> None:
+    """Configure the root logger once with our pretty console handler."""
+    global _configured
+    if _configured:
+        return
+
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(PrettyFormatter())
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(getattr(logging, level.upper(), logging.INFO))
+    root_logger.addHandler(console_handler)
+
+    _configured = True
 
 
-class LogContext:
-    """Context manager for structured logging with additional context."""
-    
-    def __init__(self, logger: logging.Logger, context: Dict[str, Any]):
-        self.logger = logger
-        self.context = context
-        self.original_format = None
-    
-    def __enter__(self):
-        # Add context to all log messages
-        context_str = " | ".join(f"{k}={v}" for k, v in self.context.items())
-        self.logger.info(f"📋 Context: {context_str}")
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        if exc_type:
-            self.logger.error(f"💥 Context ended with exception: {exc_type.__name__}: {exc_val}")
-        else:
-            self.logger.info("✅ Context completed successfully")
+def set_logger_level(level: str) -> None:
+    """Set the root logger level. If not configured yet, configure first."""
+    if not _configured:
+        _configure_root_logger(level)
+        return
+    logging.getLogger().setLevel(getattr(logging, level.upper(), logging.INFO))
+
+
+# Configure on import and expose a singleton logger
+_configure_root_logger()
+logger: logging.Logger = logging.getLogger("ai-algorithm-mentor")

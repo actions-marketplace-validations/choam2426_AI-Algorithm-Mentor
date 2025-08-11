@@ -1,281 +1,257 @@
-"""
-GitHub integration service for AI Algorithm Mentor.
-
-This module provides robust GitHub API integration with proper error handling,
-type safety, and comprehensive logging for all GitHub operations.
-"""
-
-import json
-import os
-from dataclasses import dataclass
+from __future__ import annotations
+import shutil
+import subprocess
+import tempfile
 from pathlib import Path
-from typing import Dict, List, Optional
-
+from typing import Dict, Iterable, Tuple
 import httpx
 
-from .config import AppConfig, CrawlerConfig, GitHubConfig, LLMConfig, LLMProvider
-from .exceptions import FileProcessingError, GitHubAPIError
-from .logger import LogContext, get_logger
-
-logger = get_logger(__name__)
+from .config import GitHubConfig
+from .consts import SURPORT_FILE_EXTENSIONS
+from .logger import logger
 
 
-@dataclass(frozen=True)
-class FileChange:
-    """Represents a file change in a Git commit."""
-
-    filepath: Path
-    status: str  # A(dded), M(odified), D(eleted), R(enamed)
-    content: Optional[str] = None
-
-    @property
-    def is_source_file(self) -> bool:
-        """Check if this is a source code file we should review."""
-        supported_extensions = (
-            ".c",
-            ".cpp",
-            ".cc",
-            ".cxx",
-            ".py",
-            ".java",
-            ".js",
-            ".go",
-            ".rs",
-        )
-        return self.filepath.suffix.lower() in supported_extensions
-
-    @property
-    def should_review(self) -> bool:
-        """Check if this file should be reviewed."""
-        return self.status != "D" and self.is_source_file and self.content is not None
+def _run_git(args: Iterable[str], cwd: Path) -> Tuple[int, str, str]:
+    """Run a git command and return (returncode, stdout, stderr)."""
+    process = subprocess.run(
+        ["git", *args],
+        cwd=str(cwd),
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+    )
+    return process.returncode, process.stdout.strip(), process.stderr.strip()
 
 
-class GitHubService:
+def _safe_tmp_dir(prefix: str = "gh_repo_") -> Path:
+    base_tmp = Path(tempfile.mkdtemp(prefix=prefix))
+    return base_tmp
+
+
+def clone_commit_to_temp(config: GitHubConfig) -> Path:
+    """Clone the full repository and checkout the target commit in a temp dir."""
+    if not config.repository:
+        raise ValueError("GITHUB_REPOSITORY 환경 변수가 설정되지 않았습니다.")
+    if not config.commit_sha:
+        raise ValueError("GITHUB_SHA 환경 변수가 설정되지 않았습니다.")
+
+    workdir = _safe_tmp_dir()
+    logger.info(f"clone workspace: {workdir}")
+
+    # Clone full repository into the workspace (do not print token)
+    remote_url = f"https://{config.github_token}@github.com/{config.repository}.git"
+    code, out, err = _run_git(["clone", remote_url, "."], cwd=workdir)
+    if code != 0:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise RuntimeError(f"git clone 실패: {err}")
+
+    # Ensure the target commit exists locally (fetch by SHA)
+    code, out, err = _run_git(["fetch", "origin", config.commit_sha], cwd=workdir)
+    if code != 0:
+        logger.warning(f"git fetch by sha failed, proceeding to checkout: {err}")
+
+    # Checkout the target commit
+    code, out, err = _run_git(["checkout", config.commit_sha], cwd=workdir)
+    if code != 0:
+        shutil.rmtree(workdir, ignore_errors=True)
+        raise RuntimeError(f"git checkout 실패: {err}")
+
+    logger.info("repository fully cloned and checked out at target commit")
+    return workdir
+
+
+def _parse_changed_files_from_show(output: str) -> Iterable[Tuple[str, str]]:
+    """Parse lines from `git show --name-status <sha>`.
+
+    Returns iterable of (status, path). For rename, returns ("R", new_path).
     """
-    Unified service for GitHub operations, using the GitHub API for all interactions.
+    for line in output.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        # status formats:
+        # A <path>
+        # M <path>
+        # D <path>
+        # R100 <old> <new>
+        parts = line.split("\t")
+        if not parts:
+            continue
+        status = parts[0]
+        if status.startswith("R"):
+            # rename: status, old, new
+            if len(parts) >= 3:
+                yield ("R", parts[2])
+        elif status in {"A", "M", "D", "C"}:
+            if len(parts) >= 2:
+                yield (status, parts[1])
+
+
+def _is_supported_file(path: str) -> bool:
+    return any(path.endswith(ext) for ext in SURPORT_FILE_EXTENSIONS)
+
+
+def get_changed_files_at_commit(repo_dir: Path, commit_sha: str) -> Dict[str, str]:
+    """Return mapping of {relative_path: content} for files changed in commit.
+
+    - Merge/일반 커밋: 첫 부모와의 `git diff --name-status -z` 사용
+    - 초기 커밋: `git diff-tree --root -r --name-status -z` 사용
+    - 삭제 파일은 제외, 지원 확장자만 포함
+    - 리네임은 새 경로만 포함
     """
+    def parse_name_status_null_separated(name_status_output: str) -> list[tuple[str, str]]:
+        tokens = name_status_output.split("\x00")
+        i = 0
+        pairs: list[tuple[str, str]] = []
+        while i < len(tokens):
+            status = tokens[i]
+            if not status:
+                break
+            if status.startswith("R"):
+                # status, old, new
+                if i + 2 < len(tokens):
+                    new_path = tokens[i + 2]
+                    if new_path:
+                        pairs.append(("R", new_path))
+                i += 3
+            else:
+                # status, path
+                if i + 1 < len(tokens):
+                    path = tokens[i + 1]
+                    if path:
+                        pairs.append((status, path))
+                i += 2
+        return pairs
 
-    def __init__(self, config: AppConfig):
-        self.config = config
-        self.base_url = "https://api.github.com"
-        self.headers = {
-            "Authorization": f"token {config.github.token}",
-            "Accept": "application/vnd.github.v3+json",
-            "Content-Type": "application/json",
-            "User-Agent": "AI-Algorithm-Mentor/1.0",
-        }
-        # Status mapping from GitHub API response to our internal representation
-        self.status_map = {
-            "added": "A",
-            "modified": "M",
-            "removed": "D",
-            "renamed": "R",
-        }
+    # Find parents
+    code, parents_line, err = _run_git(["rev-list", "--parents", "-n", "1", commit_sha], cwd=repo_dir)
+    parents: list[str] = []
+    if code == 0 and parents_line:
+        parts = parents_line.strip().split()
+        parents = parts[1:]  # parts[0] is commit itself
 
-    def _get_commit_changes(self) -> List[FileChange]:
-        """
-        Get all file changes from the current commit using the GitHub API.
-        This replaces the local 'git diff' command.
-        """
-        repo = self.config.github.repository
-        sha = self.config.github.commit_sha
-        log_ctx = {"repository": repo, "commit_sha": sha[:8]}
+    results: Dict[str, str] = {}
 
-        with LogContext(logger, log_ctx):
-            try:
-                logger.info("🔍 Analyzing commit changes via GitHub API")
-                with httpx.Client(timeout=30.0, headers=self.headers) as client:
-                    # 1. Get commit details to find the parent commit SHA
-                    commit_url = f"{self.base_url}/repos/{repo}/commits/{sha}"
-                    commit_resp = client.get(commit_url)
-                    commit_resp.raise_for_status()
-                    commit_data = commit_resp.json()
+    changed_spec: list[tuple[str, str]] = []
+    if not parents:
+        # Initial commit: diff-tree against empty tree
+        logger.info("initial commit detected; using diff-tree --root")
+        code, out, err = _run_git([
+            "diff-tree", "--root", "--no-commit-id", "--name-status", "-z", "-r", commit_sha
+        ], cwd=repo_dir)
+        if code != 0:
+            raise RuntimeError(f"git diff-tree 실패: {err}")
+        changed_spec = parse_name_status_null_separated(out)
+    else:
+        # Diff against first parent
+        parent = parents[0]
+        logger.info(f"diff against parent {parent[:8]}")
+        code, out, err = _run_git([
+            "diff", "--name-status", "-z", parent, commit_sha
+        ], cwd=repo_dir)
+        if code != 0 or not out:
+            logger.warning(f"git diff failed or empty, fallback to diff-tree: {err}")
+            code, out, err = _run_git([
+                "diff-tree", "--no-commit-id", "--name-status", "-z", "-r", commit_sha
+            ], cwd=repo_dir)
+            if code != 0:
+                raise RuntimeError(f"git diff-tree 실패: {err}")
+        changed_spec = parse_name_status_null_separated(out)
 
-                    if not commit_data.get("parents"):
-                        # This is the initial commit, compare against an empty tree
-                        # The files list in the commit data itself represents all added files
-                        logger.info("🌱 Initial commit detected. Analyzing all files.")
-                        api_files = commit_data.get("files", [])
-                    else:
-                        # 2. Compare the commit with its primary parent
-                        parent_sha = commit_data["parents"][0]["sha"]
-                        compare_url = (
-                            f"{self.base_url}/repos/{repo}/compare/{parent_sha}...{sha}"
-                        )
-                        compare_resp = client.get(compare_url)
-                        compare_resp.raise_for_status()
-                        api_files = compare_resp.json().get("files", [])
-
-                    if not api_files:
-                        logger.info("📝 No file changes detected in API response.")
-                        return []
-
-                    # 3. Fetch content for each changed file
-                    changes = self._fetch_file_contents(client, api_files)
-
-                source_changes = [c for c in changes if c.is_source_file]
-                logger.info(
-                    f"✅ Found {len(changes)} total changes, "
-                    f"{len(source_changes)} source files for review"
-                )
-                return changes
-
-            except httpx.HTTPStatusError as e:
-                error_msg = self._format_http_error(e)
-                logger.error(f"❌ {error_msg}")
-                raise GitHubAPIError(error_msg, e.response.status_code) from e
-            except httpx.TimeoutException as e:
-                raise GitHubAPIError("GitHub API request timed out") from e
-            except Exception as e:
-                raise FileProcessingError(
-                    f"Failed to get commit changes from API: {e}"
-                ) from e
-
-    def _fetch_file_contents(
-        self, client: httpx.Client, api_files: List[Dict]
-    ) -> List[FileChange]:
-        """Fetch content for each file returned by the compare endpoint."""
-        changes = []
-        for file_data in api_files:
-            status = self.status_map.get(file_data["status"], "M")
-            filepath = Path(file_data["filename"])
-            content = None
-
-            # Fetch content only for non-deleted files
-            if status != "D" and "raw_url" in file_data:
-                try:
-                    content_resp = client.get(file_data["raw_url"])
-                    # Allow 404 for submodules or other unreadable content
-                    if content_resp.status_code == 404:
-                        logger.warning(
-                            f"⚠️ Content not found for {filepath} (maybe a submodule?). Skipping."
-                        )
-                        continue
-                    content_resp.raise_for_status()
-                    content = content_resp.text
-                except httpx.HTTPStatusError as e:
-                    logger.warning(
-                        f"⚠️ Failed to fetch content for {filepath}: {e}. Skipping."
-                    )
-                    continue
-
-            changes.append(
-                FileChange(filepath=filepath, status=status, content=content)
-            )
-        return changes
-
-    def get_reviewable_files(self) -> Dict[str, str]:
-        """Get all files that should be reviewed from the current commit."""
-        logger.info("📝 Getting reviewable files from commit")
-        changes = self._get_commit_changes()
-        reviewable_changes = [c for c in changes if c.should_review]
-
-        if not reviewable_changes:
-            logger.info("✅ No reviewable files found")
-            return {}
-
-        result = {str(c.filepath): c.content for c in reviewable_changes if c.content}
-        logger.info(f"✅ Found {len(result)} reviewable files")
-        return result
-
-    def post_review_comment(self, comment: str) -> bool:
-        """Post a review comment to the commit."""
-        url = (
-            f"{self.base_url}/repos/{self.config.github.repository}/"
-            f"commits/{self.config.github.commit_sha}/comments"
-        )
-        data = {"body": comment}
-        log_ctx = {
-            "repository": self.config.github.repository,
-            "commit_sha": self.config.github.commit_sha[:8],
-        }
-
-        with LogContext(logger, log_ctx):
-            try:
-                logger.info("💬 Posting comment to GitHub commit")
-                with httpx.Client(timeout=30.0) as client:
-                    response = client.post(
-                        url, headers=self.headers, content=json.dumps(data)
-                    )
-                    response.raise_for_status()
-                logger.info("✅ Comment posted successfully")
-                return True
-            except httpx.HTTPStatusError as e:
-                error_msg = self._format_http_error(e)
-                logger.error(f"❌ {error_msg}")
-                raise GitHubAPIError(error_msg, e.response.status_code) from e
-            except httpx.TimeoutException as e:
-                error_msg = "Request timeout - GitHub API is not responding"
-                logger.error(f"❌ {error_msg}")
-                raise GitHubAPIError(error_msg) from e
-            except Exception as e:
-                error_msg = f"Unexpected error posting comment: {e}"
-                logger.error(f"❌ {error_msg}")
-                raise GitHubAPIError(error_msg) from e
-
-    def _format_http_error(self, error: httpx.HTTPStatusError) -> str:
-        """Format HTTP error with appropriate message."""
-        status_code = error.response.status_code
-        error_messages = {
-            401: "Invalid or missing GitHub token",
-            403: "API rate limit exceeded or insufficient permissions",
-            404: f"Repository or commit not found: {self.config.github.repository}@{self.config.github.commit_sha[:8]}",
-            422: "Invalid request data",
-        }
-        base_msg = error_messages.get(
-            status_code, f"API request failed with status {status_code}"
-        )
+    for status, rel_path in changed_spec:
+        if status == "D":
+            continue  # deleted in this commit -> skip
+        if not _is_supported_file(rel_path):
+            continue
+        abs_path = repo_dir / rel_path
+        if not abs_path.exists():
+            # In rare cases (e.g., rename to path not present?), fallback to blob read
+            code, blob, err = _run_git(["show", f"{commit_sha}:{rel_path}"], cwd=repo_dir)
+            if code == 0:
+                results[rel_path] = blob
+            continue
         try:
-            error_details = error.response.json()
-            if "message" in error_details:
-                base_msg += f" - {error_details['message']}"
+            text = abs_path.read_text(encoding="utf-8")
+        except UnicodeDecodeError:
+            text = abs_path.read_text(encoding="utf-8", errors="ignore")
+        results[rel_path] = text
+
+    if not results:
+        logger.warning("no supported changed files detected for the commit")
+    return results
+
+
+def fetch_changed_files_for_commit(config: GitHubConfig) -> Dict[str, str]:
+    """커밋 변경 파일을 {path: content}로 반환 (로컬 git 클론 방식)."""
+    if not config.repository:
+        raise ValueError("GITHUB_REPOSITORY 환경 변수가 설정되지 않았습니다.")
+    if not config.commit_sha:
+        raise ValueError("GITHUB_SHA 환경 변수가 설정되지 않았습니다.")
+
+    logger.info(
+        f"start fetching changed files via local git: repo={config.repository}, sha={config.commit_sha[:8]}"
+    )
+    repo_dir = clone_commit_to_temp(config)
+    try:
+        results = get_changed_files_at_commit(repo_dir, config.commit_sha)
+        logger.info(f"📝 collected {len(results)} supported changed files")
+        return results
+    finally:
+        try:
+            shutil.rmtree(repo_dir, ignore_errors=True)
+            logger.info("🧹 temp workspace cleaned up")
         except Exception:
             pass
-        return base_msg
 
 
-# Legacy support functions (updated to use the new unified GitHubService)
+def post_commit_comment(config: GitHubConfig, comment: str) -> bool:
+    """GitHub API를 사용해서 특정 커밋에 코멘트를 남깁니다.
 
+    Parameters
+    ----------
+    config: GitHubConfig
+        repository ("owner/repo"), commit_sha, github_token을 포함해야 합니다.
+    comment: str
+        코멘트 본문 텍스트
 
-def _get_legacy_service() -> GitHubService:
-    """Helper to create a GitHubService instance for legacy functions."""
-    try:
-        temp_config = AppConfig(
-            github=GitHubConfig(
-                token=os.getenv("GITHUB_TOKEN", ""),
-                repository=os.getenv("GITHUB_REPOSITORY", ""),
-                commit_sha=os.getenv("GITHUB_SHA", ""),
-            ),
-            llm=LLMConfig(provider=LLMProvider.OPENAI, model="gpt-4o", api_key="dummy"),
-            crawler=CrawlerConfig(),
-        )
-        return GitHubService(temp_config)
-    except Exception as e:
-        logger.error(f"❌ Failed to create service for legacy function: {e}")
-        raise
+    Returns
+    -------
+    bool
+        성공 시 True, 실패 시 False
+    """
+    if not config.github_token:
+        raise ValueError("GITHUB_TOKEN 누락: 코멘트를 전송할 수 없습니다.")
+    if not config.repository:
+        raise ValueError("GITHUB_REPOSITORY 누락: 코멘트를 전송할 수 없습니다.")
+    if not config.commit_sha:
+        raise ValueError("GITHUB_SHA 누락: 코멘트를 전송할 수 없습니다.")
 
+    url = (
+        f"https://api.github.com/repos/{config.repository}/commits/{config.commit_sha}/comments"
+    )
+    headers = {
+        "Authorization": f"token {config.github_token}",
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "User-Agent": "AI-Algorithm-Mentor/1.0",
+    }
 
-def get_current_commit_diff() -> Dict[str, str]:
-    """Legacy function for backward compatibility."""
-    logger.warning(
-        "🚨 Using deprecated get_current_commit_diff function. Please migrate to GitHubService."
+    payload = {"body": comment}
+
+    logger.info(
+        f"💬 posting comment to {config.repository}@{config.commit_sha[:8]}"
     )
     try:
-        service = _get_legacy_service()
-        return service.get_reviewable_files()
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.post(url, headers=headers, json=payload)
+            resp.raise_for_status()
+        logger.info("✅ comment posted successfully")
+        return True
+    except httpx.HTTPStatusError as e:
+        status = e.response.status_code if e.response is not None else "?"
+        logger.error(f"❌ failed to post comment (status={status}): {e}")
+        return False
     except Exception as e:
-        logger.error(f"❌ Legacy function 'get_current_commit_diff' failed: {e}")
-        return {}
-
-
-def write_comment_in_commit(comment: str) -> bool:
-    """Legacy function for backward compatibility."""
-    logger.warning(
-        "🚨 Using deprecated write_comment_in_commit function. Please migrate to GitHubService."
-    )
-    try:
-        service = _get_legacy_service()
-        return service.post_review_comment(comment)
-    except Exception as e:
-        logger.error(f"❌ Legacy function 'write_comment_in_commit' failed: {e}")
+        logger.error(f"❌ unexpected error while posting comment: {e}")
         return False
