@@ -30,14 +30,7 @@ def _safe_tmp_dir(prefix: str = "gh_repo_") -> Path:
 
 
 def clone_commit_to_temp(config: GitHubConfig) -> Path:
-    """Shallow-fetch a specific commit into a temporary working directory.
-
-    Steps:
-    1) git init
-    2) git remote add origin https://<token>@github.com/<owner>/<repo>.git
-    3) git fetch --depth=1 origin <commit_sha>
-    4) git checkout FETCH_HEAD
-    """
+    """Clone the full repository and checkout the target commit in a temp dir."""
     if not config.repository:
         raise ValueError("GITHUB_REPOSITORY 환경 변수가 설정되지 않았습니다.")
     if not config.commit_sha:
@@ -46,32 +39,20 @@ def clone_commit_to_temp(config: GitHubConfig) -> Path:
     workdir = _safe_tmp_dir()
     logger.info(f"clone workspace: {workdir}")
 
-    # Initialize empty repo
-    code, out, err = _run_git(["init"], cwd=workdir)
-    if code != 0:
-        shutil.rmtree(workdir, ignore_errors=True)
-        raise RuntimeError(f"git init 실패: {err}")
-
-    # Add remote with token (avoid printing token)
+    # Clone full repository into the workspace (do not print token)
     remote_url = f"https://{config.github_token}@github.com/{config.repository}.git"
-    code, out, err = _run_git(["remote", "add", "origin", remote_url], cwd=workdir)
+    code, out, err = _run_git(["clone", remote_url, "."], cwd=workdir)
     if code != 0:
         shutil.rmtree(workdir, ignore_errors=True)
-        raise RuntimeError(f"git remote add 실패: {err}")
+        raise RuntimeError(f"git clone 실패: {err}")
 
-    # Fetch specific commit
-    code, out, err = _run_git(["fetch", "--depth=1", "origin", config.commit_sha], cwd=workdir)
-    if code != 0:
-        shutil.rmtree(workdir, ignore_errors=True)
-        raise RuntimeError(f"git fetch 실패: {err}")
-
-    # Checkout fetched commit
-    code, out, err = _run_git(["checkout", "FETCH_HEAD"], cwd=workdir)
+    # Checkout the target commit
+    code, out, err = _run_git(["checkout", config.commit_sha], cwd=workdir)
     if code != 0:
         shutil.rmtree(workdir, ignore_errors=True)
         raise RuntimeError(f"git checkout 실패: {err}")
 
-    logger.info("repository cloned at specific commit")
+    logger.info("repository fully cloned and checked out at target commit")
     return workdir
 
 
