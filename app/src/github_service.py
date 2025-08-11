@@ -4,6 +4,7 @@ import subprocess
 import tempfile
 from pathlib import Path
 from typing import Dict, Iterable, Tuple
+import httpx
 
 from .config import GitHubConfig
 from .consts import SURPORT_FILE_EXTENSIONS
@@ -163,3 +164,55 @@ def fetch_changed_files_for_commit(config: GitHubConfig) -> Dict[str, str]:
             logger.info("🧹 temp workspace cleaned up")
         except Exception:
             pass
+
+
+def post_commit_comment(config: GitHubConfig, comment: str) -> bool:
+    """GitHub API를 사용해서 특정 커밋에 코멘트를 남깁니다.
+
+    Parameters
+    ----------
+    config: GitHubConfig
+        repository ("owner/repo"), commit_sha, github_token을 포함해야 합니다.
+    comment: str
+        코멘트 본문 텍스트
+
+    Returns
+    -------
+    bool
+        성공 시 True, 실패 시 False
+    """
+    if not config.github_token:
+        raise ValueError("GITHUB_TOKEN 누락: 코멘트를 전송할 수 없습니다.")
+    if not config.repository:
+        raise ValueError("GITHUB_REPOSITORY 누락: 코멘트를 전송할 수 없습니다.")
+    if not config.commit_sha:
+        raise ValueError("GITHUB_SHA 누락: 코멘트를 전송할 수 없습니다.")
+
+    url = (
+        f"https://api.github.com/repos/{config.repository}/commits/{config.commit_sha}/comments"
+    )
+    headers = {
+        "Authorization": f"token {config.github_token}",
+        "Accept": "application/vnd.github+json",
+        "Content-Type": "application/json",
+        "User-Agent": "AI-Algorithm-Mentor/1.0",
+    }
+
+    payload = {"body": comment}
+
+    logger.info(
+        f"💬 posting comment to {config.repository}@{config.commit_sha[:8]}"
+    )
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.post(url, headers=headers, json=payload)
+            resp.raise_for_status()
+        logger.info("✅ comment posted successfully")
+        return True
+    except httpx.HTTPStatusError as e:
+        status = e.response.status_code if e.response is not None else "?"
+        logger.error(f"❌ failed to post comment (status={status}): {e}")
+        return False
+    except Exception as e:
+        logger.error(f"❌ unexpected error while posting comment: {e}")
+        return False

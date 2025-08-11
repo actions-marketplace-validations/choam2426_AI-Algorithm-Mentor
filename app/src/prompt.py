@@ -71,5 +71,13 @@ prompt = ChatPromptTemplate.from_messages([
     ("user", USER_TEMPLATE),
 ])
 
-def get_prompt(problem_info: str, solution_code: str, output_language: str) -> str:
-    return prompt.format(problem_info=problem_info, solution_code=solution_code, output_language=output_language)
+def get_prompt(problem_info: str, solution_code: str, output_language: str) -> ChatPromptTemplate:
+    """미리 변수 바인딩된 ChatPromptTemplate을 반환합니다.
+
+    main에서 `prompt | llm` 체인으로 바로 사용할 수 있습니다.
+    """
+    return prompt.partial(
+        problem_info=problem_info,
+        solution_code=solution_code,
+        output_language=output_language,
+    )
