@@ -16,10 +16,14 @@ class LLMConfig:
     response_language: str
 
 def get_github_config() -> GitHubConfig:
+    github_token = os.getenv("GITHUB_TOKEN")
+    if not github_token:
+        raise ValueError("GITHUB_TOKEN 환경 변수가 설정되지 않았습니다. GitHub API 접근을 위해 토큰을 설정하세요.")
+
     return GitHubConfig(
         commit_sha=os.getenv("GITHUB_SHA"),
         repository=os.getenv("GITHUB_REPOSITORY"),
-        github_token=os.getenv("GITHUB_TOKEN")
+        github_token=github_token,
     )
 
 def get_llm_config() -> LLMConfig:

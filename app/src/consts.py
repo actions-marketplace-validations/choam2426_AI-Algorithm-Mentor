@@ -19,7 +19,7 @@ class LLMProvider(Enum):
     GOOGLE = "google"
 
 DEFAULT_MODEL_MAP: dict[LLMProvider, str] = {
-    LLMProvider.OPENAI: "gpt-4o",
+    LLMProvider.OPENAI: "gpt-5",
     LLMProvider.ANTHROPIC: "claude-4.0-sonnet",
     LLMProvider.GOOGLE: "gemini-2.5-pro",
 }
