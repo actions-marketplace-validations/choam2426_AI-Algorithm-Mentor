@@ -6,8 +6,6 @@
 [![GitHub release](https://img.shields.io/github/release/choam2426/AI-Algorithm-Mentor.svg)](https://github.com/choam2426/AI-Algorithm-Mentor/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-[🌍 **English Version**](./README_EN.md) | **한국어**
-
 ---
 
 ## ✨ 주요 기능
@@ -17,12 +15,18 @@
 - 시간/공간 복잡도 분석 및 최적화 제안
 - 코딩 컨벤션 및 가독성 개선 제안
 
+### 🔗 **Online Judge 자동 감지 & 크롤링**
+- 변경 파일의 첫 줄 주석에서 문제 URL 자동 감지
+- 플랫폼 감지: 백준(지원), 프로그래머스/LeetCode(확장 예정)
+- 백준 문제 페이지를 크롤링해 제목/설명/입출력/예제를 Markdown으로 수집
+
+### 💬 **자동 커밋 코멘트**
+- LLM 결과를 GitHub Commit 코멘트로 자동 게시
+
 ### 🌐 **다중 플랫폼 지원**
-- **백준** (acmicpc.net) - 완전 지원
-- **프로그래머스** (programmers.co.kr) - 지원
-- **LeetCode** (leetcode.com) - 지원
-- **Codeforces** (codeforces.com) - 지원
-- **HackerRank** (hackerrank.com) - 지원
+- **백준** (acmicpc.net) - 지원
+- **프로그래머스** (programmers.co.kr) - 예정
+- **LeetCode** (leetcode.com) - 예정
 
 ### 🤖 **다중 AI 모델 지원**
 - **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
@@ -30,7 +34,7 @@
 - **Anthropic** (Claude-3-Sonnet)
 
 ### 🌏 **다국어 리뷰**
-- 프롬프트는 영어로 통일, 리뷰 응답 언어만 선택 가능
+- 리뷰 응답 언어 선택 가능
 - 한국어, 영어 등 LLM이 지원하는 모든 언어
 
 ---
@@ -68,7 +72,7 @@
        permissions:
          contents: write
        steps:
-         - uses: choam2426/AI-Algorithm-Mentor@v4
+          - uses: choam2426/AI-Algorithm-Mentor@v4
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
              LLM_PROVIDER: openai              # openai, google, anthropic
@@ -81,30 +85,17 @@
 
 직접 커밋으로 알고리즘 문제 풀이를 올리면 자동으로 AI 리뷰가 생성됩니다!
 
-❗❗❗코드의 첫 줄에는 반드시 해당 문제의 url을 주석으로 추가해주세요!❗❗❗
+❗❗❗코드의 첫 줄에는 반드시 해당 문제의 URL을 주석으로 추가해주세요!❗❗❗
+예) `# https://www.acmicpc.net/problem/1000`
 ---
 
-## 📖 리뷰 예시
+## 📖 코드 예시
 
 ```python
 # https://www.acmicpc.net/problem/1000
 a, b = map(int, input().split())
 print(a + b)
 ```
-
-**AI 리뷰 결과:**
-> ### 📝 총평
-> 문제의 핵심을 정확히 파악하고 간결하게 구현하셨습니다. 기본적인 입출력 처리가 올바르게 되어 있어 좋습니다.
-> 
-> ### ✨ 잘한 점
-> * **정확한 구현**: 문제 요구사항을 정확히 구현했습니다
-> * **효율적인 코드**: 불필요한 복잡성 없이 간결하게 작성했습니다
-> 
-> ### 💡 추가 팁
-> * 이 문제는 기본 입출력 연습에 좋은 문제입니다
-> * 더 복잡한 수학 문제로 단계를 올려보세요
-
----
 
 ## ⚙️ 설정 옵션
 
@@ -114,96 +105,28 @@ print(a + b)
 |--------|------|-------|------|
 | `LLM_PROVIDER` | AI 제공자 | `openai` | `openai`, `google`, `anthropic` |
 | `LLM_MODEL` | 사용할 모델 | `gpt-4o` | `gpt-4o`, `gpt-4o-mini`, `gemini-2.5-pro`, `claude-3-sonnet` |
-| `REVIEW_LANGUAGE` | 리뷰 언어 | `english` | `korean`, `english` |
+| `REVIEW_LANGUAGE` | 리뷰 언어 | `korean` | `korean`, `english` |
 | `OPENAI_API_KEY` | OpenAI API 키 | - | 필수 (openai 사용시) |
 | `GOOGLE_API_KEY` | Google AI API 키 | - | 필수 (google 사용시) |
 | `ANTHROPIC_API_KEY` | Anthropic API 키 | - | 필수 (anthropic 사용시) |
-
-### 다중 모델 사용 예시
-
-```yaml
-strategy:
-  matrix:
-    llm: [
-      { provider: openai, model: gpt-4o, key: OPENAI_API_KEY },
-      { provider: google, model: gemini-2.5-pro, key: GOOGLE_API_KEY }
-    ]
-steps:
-  - uses: choam2426/AI-Algorithm-Mentor@v4
-    with:
-      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      LLM_PROVIDER: ${{ matrix.llm.provider }}
-      LLM_MODEL: ${{ matrix.llm.model }}
-      ${{ matrix.llm.key }}: ${{ secrets[matrix.llm.key] }}
-```
-
----
+| `GITHUB_TOKEN` | GitHub API 토큰 | GitHub Actions 기본 제공 | 커밋 코멘트 게시에 필요 |
 
 ## 🏗️ 아키텍처
 
 ```mermaid
 graph TD
     A[GitHub Action] --> B[AI Algorithm Mentor]
-    B --> C[설정 관리자]
-    B --> D[파일 분석기]
-    B --> E[문제 크롤러]
-    B --> F[LLM 서비스]
-    B --> G[GitHub API]
-    
-    C --> C1[환경변수 검증]
-    C --> C2[다중 제공자 지원]
-    
-    E --> E1[백준 크롤러]
-    E --> E2[프로그래머스 크롤러]
-    E --> E3[LeetCode 크롤러]
-    E --> E4[Codeforces 크롤러]
-    E --> E5[HackerRank 크롤러]
-    
-    F --> F1[OpenAI]
-    F --> F2[Google AI]
-    F --> F3[Anthropic]
-```
+    B --> C[설정 관리 (config)]
+    B --> D[Git 변경 파일 수집 (github_service)]
+    B --> E[OJ 감지 (online_judge)]
+    B --> F[문제 크롤러 (problem_info_crawler)]
+    B --> G[프롬프트 (prompt)]
+    B --> H[LLM 팩토리 (llm_factory)]
+    B --> I[GitHub 코멘트 (github_service)]
 
----
-
-## 🛠️ 개발
-
-### 로컬 실행
-
-```bash
-# 레포지토리 클론
-git clone https://github.com/choam2426/AI-Algorithm-Mentor.git
-cd AI-Algorithm-Mentor
-
-# 의존성 설치
-uv sync
-
-# 환경 변수 설정
-cp .env.example .env
-# .env 파일에 API 키 입력
-
-# 실행
-python app/main.py
-```
-
-### 프로젝트 구조
-
-```
-AI-Algorithm-Mentor/
-├── app/
-│   ├── main.py                 # 메인 애플리케이션
-│   ├── src/
-│   │   ├── config.py          # 설정 관리
-│   │   ├── exceptions.py      # 예외 처리
-│   │   ├── logger.py          # 로깅 시스템
-│   │   ├── llm_service.py     # LLM 서비스
-│   │   ├── github_service.py  # GitHub 통합
-│   │   ├── crawler_service.py # 웹 크롤링
-│   │   └── prompt.py          # 프롬프트 관리
-│   └── pyproject.toml         # 프로젝트 설정
-├── .github/workflows/         # GitHub Actions
-├── Dockerfile                 # 컨테이너 이미지
-└── action.yml                # GitHub Action 정의
+    H --> H1[OpenAI]
+    H --> H2[Google AI]
+    H --> H3[Anthropic]
 ```
 
 ### 기여하기
@@ -217,8 +140,8 @@ AI-Algorithm-Mentor/
 ## 📋 지원 범위
 
 - **프로그래밍 언어**: Python, Java, C++, C, JavaScript, Go, Rust
-- **문제 플랫폼**: 백준, 프로그래머스, LeetCode, Codeforces, HackerRank
-- **리뷰 언어**: 한국어, 영어 등 LLM이 지원하는 언어 (프롬프트는 영어 고정, 응답만 언어 변경)
+- **문제 플랫폼**: 백준
+- **리뷰 언어**: 한국어, 영어 등 LLM이 지원하는 언어
 
 ---
 
@@ -235,4 +158,4 @@ AI-Algorithm-Mentor/
 
 ### 관련 프로젝트
 
-- [사용 예시](https://github.com/choam2426/OnlineJudge) - 개발자가 실제 사용하고 있는 레포
+- [사용 예시](https://github.com/choam2426/OnlineJudge) - 개발자가 실제 적용하고 있는 레포
