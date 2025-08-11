@@ -4,8 +4,6 @@ import re
 from html import unescape
 from html.parser import HTMLParser
 from typing import Dict, List, Optional, Tuple
-
-import os
 import httpx
 
 from .logger import logger
@@ -125,41 +123,64 @@ class _BojProblemParser(HTMLParser):
 
 
 def _fetch_html(url: str, timeout: float = 20.0) -> str:
-    """Fetch HTML with browser-like headers to avoid 403.
+    """Fetch HTML trying multiple profiles; 쿠키 없이 최대한 403 회피.
 
-    - Sends a modern desktop User-Agent, Referer and accept headers
-    - Uses HTTP/2 where available
-    - If 403, retries with `?view=standard`
-    - Optionally includes `BOJ_COOKIE` env as Cookie header
+    순서:
+    1) HTTP/1.1 + 기본 브라우저 헤더
+    2) HTTP/2 + Client Hints 포함 헤더
+    3) URL 변형: 끝 슬래시 추가, view=standard
+    4) 그래도 실패 시 403 그대로 전달
     """
-    ua = (
+    base_ua = (
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
         "AppleWebKit/537.36 (KHTML, like Gecko) "
         "Chrome/127.0.0.0 Safari/537.36"
     )
-    headers = {
-        "User-Agent": ua,
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
-        "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Referer": "https://www.acmicpc.net/",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Site": "same-origin",
-        "Cache-Control": "no-cache",
-        "Pragma": "no-cache",
-    }
-    cookie = os.getenv("BOJ_COOKIE")
-    if cookie:
-        headers["Cookie"] = cookie
 
-    with httpx.Client(timeout=timeout, headers=headers, follow_redirects=True, http2=True) as client:
-        resp = client.get(url)
-        if resp.status_code == 403:
-            alt = url + ("&" if "?" in url else "?") + "view=standard"
-            resp = client.get(alt)
-        resp.raise_for_status()
-        return resp.text
+    profiles = [
+        ({
+            "User-Agent": base_ua,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://www.acmicpc.net/",
+            "Accept-Encoding": "gzip, deflate, br",
+            "Connection": "keep-alive",
+        }, False),
+        ({
+            "User-Agent": base_ua,
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7",
+            "Referer": "https://www.acmicpc.net/",
+            "Upgrade-Insecure-Requests": "1",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Site": "same-origin",
+            "Sec-CH-UA": '\"Chromium\";v=\"127\", \"Not(A:Brand\";v=\"24\", \"Google Chrome\";v=\"127\"',
+            "Sec-CH-UA-Mobile": "?0",
+            "Sec-CH-UA-Platform": '\"Windows\"',
+            "Accept-Encoding": "gzip, deflate, br",
+        }, True),
+    ]
+
+    url_candidates = [
+        url,
+        url if url.endswith("/") else url + "/",
+        url + ("&" if "?" in url else "?") + "view=standard",
+    ]
+
+    last_status = None
+    last_url = None
+    for headers, http2 in profiles:
+        with httpx.Client(timeout=timeout, headers=headers, follow_redirects=True, http2=http2) as client:
+            for u in url_candidates:
+                resp = client.get(u)
+                if resp.status_code == 200:
+                    return resp.text
+                last_status = resp.status_code
+                last_url = str(resp.request.url)
+    raise httpx.HTTPStatusError(
+        f"Client error '{last_status}' for url '{last_url}'", request=None, response=None
+    )
 
 
 def crawl_boj_problem_markdown(url: str) -> str:
