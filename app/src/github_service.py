@@ -141,17 +141,14 @@ def get_changed_files_at_commit(repo_dir: Path, commit_sha: str) -> Dict[str, st
 
 
 def fetch_changed_files_for_commit(config: GitHubConfig) -> Dict[str, str]:
-    """클론 → 변경 파일 수집 → 정리까지 하나로 수행하는 고수준 함수.
-
-    내부적으로 보조 함수(`clone_commit_to_temp`, `get_changed_files_at_commit`)를 사용합니다.
-    """
+    """커밋 변경 파일을 {path: content}로 반환 (로컬 git 클론 방식)."""
     if not config.repository:
         raise ValueError("GITHUB_REPOSITORY 환경 변수가 설정되지 않았습니다.")
     if not config.commit_sha:
         raise ValueError("GITHUB_SHA 환경 변수가 설정되지 않았습니다.")
 
     logger.info(
-        f"start fetching changed files: repo={config.repository}, sha={config.commit_sha[:8]}"
+        f"start fetching changed files via local git: repo={config.repository}, sha={config.commit_sha[:8]}"
     )
     repo_dir = clone_commit_to_temp(config)
     try:
