@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 import os
 import httpx
 
-from logger import logger
+from src.logger import logger
 
 
 class _BojProblemParser(HTMLParser):
