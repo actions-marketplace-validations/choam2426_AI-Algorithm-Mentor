@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from enum import Enum
 
-SURPORT_FILE_EXTENSIONS: tuple = (
+SUPPORT_FILE_EXTENSIONS: tuple = (
     ".c",
     ".cpp",
     ".cc",
@@ -9,8 +9,14 @@ SURPORT_FILE_EXTENSIONS: tuple = (
     ".py",
     ".java",
     ".js",
+    ".ts",
     ".go",
     ".rs",
+    ".cs",
+    ".kt",
+    ".kts",
+    ".rb",
+    ".swift",
 )
 
 
