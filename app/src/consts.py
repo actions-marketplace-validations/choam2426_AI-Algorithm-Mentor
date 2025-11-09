@@ -1,3 +1,4 @@
+from dataclasses import dataclass
 from enum import Enum
 
 SURPORT_FILE_EXTENSIONS: tuple = (
@@ -19,16 +20,25 @@ class LLMProvider(Enum):
     GOOGLE = "google"
 
 
-DEFAULT_MODEL_MAP: dict[LLMProvider, dict[str, str]] = {
-    LLMProvider.OPENAI: {"efficient": "gpt-5-nano", "performance": "gpt-5"},
-    LLMProvider.ANTHROPIC: {
-        "efficient": "claude-haiku-4-5",
-        "performance": "claude-sonnet-4-5",
-    },
-    LLMProvider.GOOGLE: {
-        "efficient": "gemini-2.5-flash",
-        "performance": "gemini-2.5-pro",
-    },
+@dataclass(frozen=True)
+class ModelOptions:
+    efficient: str
+    performance: str
+
+
+DEFAULT_MODEL_MAP: dict[LLMProvider, ModelOptions] = {
+    LLMProvider.OPENAI: ModelOptions(
+        efficient="gpt-5-nano",
+        performance="gpt-5",
+    ),
+    LLMProvider.ANTHROPIC: ModelOptions(
+        efficient="claude-haiku-4-5",
+        performance="claude-sonnet-4-5",
+    ),
+    LLMProvider.GOOGLE: ModelOptions(
+        efficient="gemini-2.5-flash",
+        performance="gemini-2.5-pro",
+    ),
 }
 
 API_KEY_ENV_MAP: dict[LLMProvider, str] = {
