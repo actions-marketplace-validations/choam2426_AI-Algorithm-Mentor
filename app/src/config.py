@@ -1,7 +1,7 @@
 import os
 from dataclasses import dataclass
 
-from .consts import DEFAULT_MODEL_MAP, LLMProvider
+from .consts import DEFAULT_MODEL_MAP, LLMProvider, ModelOptions
 
 
 @dataclass(frozen=True)
@@ -14,7 +14,7 @@ class GitHubConfig:
 @dataclass(frozen=True)
 class LLMConfig:
     provider: LLMProvider
-    api_key: str
+    model_options: ModelOptions
     response_language: str
 
 
@@ -41,10 +41,10 @@ def get_llm_config() -> LLMConfig:
             f"잘못된 LLM_PROVIDER 값입니다: {llm_provider_str}. 유효한 값: {valid_providers}"
         )
 
-    model = DEFAULT_MODEL_MAP[provider]
+    model_options = DEFAULT_MODEL_MAP[provider]
     response_language = os.getenv("REVIEW_LANGUAGE", "korean")
     return LLMConfig(
         provider=provider,
-        model=model,
+        model_options=model_options,
         response_language=response_language,
     )
