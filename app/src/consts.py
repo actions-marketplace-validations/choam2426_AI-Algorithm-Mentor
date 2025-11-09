@@ -20,7 +20,7 @@ class LLMProvider(Enum):
 
 
 DEFAULT_MODEL_MAP: dict[LLMProvider, dict[str, str]] = {
-    LLMProvider.OPENAI: {"efficient": "gpt-4o-mini", "performance": "gpt-5"},
+    LLMProvider.OPENAI: {"efficient": "gpt-5-nano", "performance": "gpt-5"},
     LLMProvider.ANTHROPIC: {
         "efficient": "claude-haiku-4-5",
         "performance": "claude-sonnet-4-5",
