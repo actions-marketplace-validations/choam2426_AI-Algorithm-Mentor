@@ -3,6 +3,7 @@ import json
 import requests
 
 from .config import GitHubConfig
+from .consts import SUPPORT_FILE_EXTENSIONS
 
 
 def get_commit_data(config: GitHubConfig) -> dict:
@@ -17,6 +18,9 @@ def get_commit_data(config: GitHubConfig) -> dict:
     files = commit_data["files"]
     for file in files:
         filename = file["filename"]
+        if not filename.endswith(SUPPORT_FILE_EXTENSIONS):
+            continue
+
         url = f"https://api.github.com/repos/{config.repository}/contents/{filename}"
         response = requests.get(url, headers=headers)
         file_contents[filename] = response.text
