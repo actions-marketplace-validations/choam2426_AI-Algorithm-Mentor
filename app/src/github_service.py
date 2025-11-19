@@ -1,7 +1,7 @@
 import json
 import os
 
-import requests
+import httpx
 
 from .config import GitHubConfig
 from .consts import COMMENT_PREFIX_MAP, SUPPORT_FILE_EXTENSIONS
@@ -13,7 +13,7 @@ def get_commit_data(config: GitHubConfig) -> dict:
         "Accept": "application/vnd.github.v3.json",
     }
     url = f"https://api.github.com/repos/{config.repository}/commits/{config.commit_sha}"
-    response = requests.get(url, headers=headers)
+    response = httpx.get(url, headers=headers)
     file_contents = {}
     commit_data = response.json()
     files = commit_data["files"]
@@ -26,7 +26,7 @@ def get_commit_data(config: GitHubConfig) -> dict:
         # Use raw header for file content to get the actual text
         content_headers = headers.copy()
         content_headers["Accept"] = "application/vnd.github.v3.raw"
-        response = requests.get(url, headers=content_headers)
+        response = httpx.get(url, headers=content_headers)
         content = response.text
 
         # Check if the first line is a comment
@@ -53,4 +53,4 @@ def write_comment_in_commit(config: GitHubConfig, comment: str) -> None:
     }
     data = {"body": comment}
 
-    response = requests.post(url, headers=headers, data=json.dumps(data))
+    response = httpx.post(url, headers=headers, data=json.dumps(data))
