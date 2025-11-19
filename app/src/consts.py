@@ -19,6 +19,24 @@ SUPPORT_FILE_EXTENSIONS: tuple = (
     ".swift",
 )
 
+COMMENT_PREFIX_MAP: dict[str, tuple[str, ...]] = {
+    ".c": ("//", "/*"),
+    ".cpp": ("//", "/*"),
+    ".cc": ("//", "/*"),
+    ".cxx": ("//", "/*"),
+    ".py": ("#", '"""', "'''"),
+    ".java": ("//", "/*"),
+    ".js": ("//", "/*"),
+    ".ts": ("//", "/*"),
+    ".go": ("//", "/*"),
+    ".rs": ("//", "/*"),
+    ".cs": ("//", "/*"),
+    ".kt": ("//", "/*"),
+    ".kts": ("//", "/*"),
+    ".rb": ("#", "=begin"),
+    ".swift": ("//", "/*"),
+}
+
 
 class LLMProvider(Enum):
     OPENAI = "openai"
