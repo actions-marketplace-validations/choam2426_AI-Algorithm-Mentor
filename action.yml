@@ -26,8 +26,8 @@ inputs:
     description: "Language for code review comments (e.g., english, korean, german)"
     required: false
     default: "korean"
-  SCRAPERAPI_API_KEY:
-    description: "ScraperAPI key for bypassing bot protection when scraping BOJ (https://www.scraperapi.com/)"
+  WEBCRAWLER_API_KEY:
+    description: "WebCrawlerAPI key for scraping BOJ problems (https://webcrawlerapi.com/)"
     required: true
 
 runs:
@@ -41,7 +41,7 @@ runs:
     GEMINI_API_KEY: ${{ inputs.GEMINI_API_KEY }}
     ANTHROPIC_API_KEY: ${{ inputs.ANTHROPIC_API_KEY }}
     REVIEW_LANGUAGE: ${{ inputs.REVIEW_LANGUAGE }}
-    SCRAPERAPI_API_KEY: ${{ inputs.SCRAPERAPI_API_KEY }}
+    WEBCRAWLER_API_KEY: ${{ inputs.WEBCRAWLER_API_KEY }}
 branding:
   icon: "check-circle"
   color: "blue"
