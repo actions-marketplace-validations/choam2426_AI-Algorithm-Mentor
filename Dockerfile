@@ -31,4 +31,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONDONTWRITEBYTECODE=1
 
-ENTRYPOINT ["python", "main.py"]
+ENTRYPOINT ["python", "/app/main.py"]
