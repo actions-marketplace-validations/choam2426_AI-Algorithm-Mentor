@@ -55,9 +55,9 @@ class LeetCodeScraper(BaseScraper):
         if not question:
             raise ValueError(f"Problem not found: {problem_id}")
 
-        # Parse content
+        # Parse content with proper text extraction
         soup = BeautifulSoup(question["content"], "html.parser")
-        description = soup.get_text("\n", strip=True)
+        description = self._extract_text(soup)
 
         # Extract test cases from content (Example sections)
         test_cases = []
