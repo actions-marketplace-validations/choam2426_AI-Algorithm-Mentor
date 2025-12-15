@@ -43,6 +43,11 @@
 - 리뷰 응답 언어 선택 가능
 - 한국어, 영어 등 LLM이 지원하는 모든 언어
 
+### 🔎 **적용 예시!**
+[예시1](https://github.com/choam2426/OnlineJudge/commit/09d4753fb1957cf70188a9d8fdbd3873e925a778#commitcomment-172865735)
+
+[예시2](https://github.com/choam2426/OnlineJudge/commit/0e0e8c94dabf407a38a559c52eb19a3cebe8adda#commitcomment-172867307)
+
 ---
 
 ## 🚀 사용 방법
@@ -262,3 +267,4 @@ uv sync
 ### 관련 프로젝트
 
 - [사용 예시](https://github.com/choam2426/OnlineJudge) - 개발자가 실제 적용하고 있는 레포
+
