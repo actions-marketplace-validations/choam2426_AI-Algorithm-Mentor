@@ -13,8 +13,9 @@ jobs:
       - uses: choam2426/AI-Algorithm-Mentor@v5
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          LLM_PROVIDER: openai              # openai, google, anthropic
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          # GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}      # required when LLM_PROVIDER is 'google'
+          LLM_PROVIDER: google              # openai, google, anthropic
+          # MODEL_NAME: gemini-3-pro-preview  # 모델명 (선택사항)
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}        # required when LLM_PROVIDER is 'openai'
           # ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}  # required when LLM_PROVIDER is 'anthropic'
           REVIEW_LANGUAGE: korean           # korean, english, etc.. (optional)
