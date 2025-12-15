@@ -37,49 +37,21 @@ class AlgorithmReviewCrew:
         self.llm_config = llm_config
         self.llm = get_crewai_llm(llm_config)
 
-    def logic_expert(self) -> Agent:
+    def algorithm_reviewer(self) -> Agent:
         return Agent(
-            role="Algorithm Logic Verifier",
-            goal="Verify the correctness of the solution against the problem requirements.",
+            role="Algorithm Review Expert",
+            goal="Provide comprehensive code review covering correctness, performance, and code quality.",
             backstory=dedent("""
-                You are a strict Algorithm Judge. Your sole focus is correctness.
-                You check if the logic holds for all edge cases, boundary conditions, and potential constraints.
-                You are modeled after rigorous Online Judge systems (BOJ, Codeforces).
+                You are a Senior Algorithm Expert with deep knowledge in competitive programming and software engineering.
+                You verify correctness like a strict Online Judge, analyze complexity like an optimization guru,
+                and ensure clean, readable code like a seasoned mentor.
             """),
             llm=self.llm,
             verbose=True,
             allow_delegation=False,
         )
 
-    def performance_specialist(self) -> Agent:
-        return Agent(
-            role="Performance & Complexity Analyst",
-            goal="Analyze Time and Space complexity and suggest optimizations.",
-            backstory=dedent("""
-                You are an Optimization Guru. You care about Big-O notation.
-                You despise inefficient loops and redundant calculations.
-                You look for the most optimal data structures and algorithmic approaches.
-            """),
-            llm=self.llm,
-            verbose=True,
-            allow_delegation=False,
-        )
-
-    def code_quality_mentor(self) -> Agent:
-        return Agent(
-            role="Clean Code Mentor",
-            goal="Ensure code readability, proper naming, and maintainability.",
-            backstory=dedent("""
-                You are a Senior Software Engineer who values clean, Pythonic (or language-idiomatic) code.
-                You look for bad variable names, lack of modularity, and messy structures.
-                You want the code to be readable by humans, not just computers.
-            """),
-            llm=self.llm,
-            verbose=True,
-            allow_delegation=False,
-        )
-
-    def review_task(self, agent: Agent, focus_area: str) -> Task:
+    def review_task(self, agent: Agent) -> Task:
         return Task(
             description=dedent(f"""
                 Analyze the provided solution code for the given problem.
@@ -90,21 +62,12 @@ class AlgorithmReviewCrew:
                 [Solution Code]
                 {self.solution_code}
 
-                Your focus is: {focus_area}
-                Provide a detailed report on your findings strictly related to your role.
-            """),
-            expected_output=dedent(f"""
-                A structured section focused on {focus_area}.
-                Include specific examples from the code and actionable suggestions.
-            """),
-            agent=agent,
-        )
+                Review the code from these perspectives:
+                1. Correctness: Logic, edge cases, boundary conditions
+                2. Performance: Time/Space complexity, optimizations
+                3. Code Quality: Readability, naming, best practices
 
-    def report_aggregator_task(self, agent: Agent, context: list[Task]) -> Task:
-        return Task(
-            description=dedent(f"""
-                Synthesize the findings from the Logic Verifier, Performance Analyst, and Code Mentor.
-                Create a final, comprehensive Markdown report in {self.llm_config.response_language}.
+                Create a comprehensive Markdown report in {self.llm_config.response_language}.
                 The report should be encouraging but technically rigorous.
             """),
             expected_output=dedent("""
@@ -116,33 +79,15 @@ class AlgorithmReviewCrew:
                 5. 📚 Study Guide (Related concepts)
             """),
             agent=agent,
-            context=context,
         )
 
     def kickoff(self) -> str:
-        # Agents
-        logic_agent = self.logic_expert()
-        perf_agent = self.performance_specialist()
-        quality_agent = self.code_quality_mentor()
-
-        # Tasks
-        logic_task = self.review_task(logic_agent, "Correctness, Logic, and Edge Cases")
-        perf_task = self.review_task(
-            perf_agent, "Time/Space Complexity and Optimizations"
-        )
-        quality_task = self.review_task(
-            quality_agent, "Readability, Naming, and Best Practices"
-        )
-
-        # Final Synthesis Task
-        # 이전 태스크들의 결과(context)를 종합하여 최종 보고서를 작성합니다.
-        final_task = self.report_aggregator_task(
-            quality_agent, context=[logic_task, perf_task, quality_task]
-        )
+        reviewer = self.algorithm_reviewer()
+        task = self.review_task(reviewer)
 
         crew = Crew(
-            agents=[logic_agent, perf_agent, quality_agent],
-            tasks=[logic_task, perf_task, quality_task, final_task],
+            agents=[reviewer],
+            tasks=[task],
             process=Process.sequential,
             verbose=True,
         )
