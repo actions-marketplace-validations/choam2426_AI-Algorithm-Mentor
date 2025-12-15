@@ -29,9 +29,9 @@
 - **LeetCode** (leetcode.com) - 예정
 
 ### 🤖 **다중 AI 모델 지원**
-- **OpenAI** (GPT-4, GPT-4o, GPT-4o-mini)
-- **Google AI** (Gemini-2.5-Pro)
-- **Anthropic** (Claude-3-Sonnet)
+- **OpenAI** (GPT-5-nano, GPT-5.1)
+- **Google AI** (Gemini-2.5-flash, Gemini-3-pro-preview)
+- **Anthropic** (Claude-haiku-4-5, Claude-sonnet-4-5)
 
 ### 🌏 **다국어 리뷰**
 - 리뷰 응답 언어 선택 가능
@@ -48,14 +48,38 @@
 | 제공자 | API 키 발급 | 환경변수명 |
 |--------|------------|-----------|
 | **OpenAI** | [OpenAI API](https://openai.com/api/) | `OPENAI_API_KEY` |
-| **Google AI** | [Google AI Studio](https://aistudio.google.com/) | `GOOGLE_API_KEY` |
+| **Google AI** | [Google AI Studio](https://aistudio.google.com/) | `GEMINI_API_KEY` |
 | **Anthropic** | [Anthropic Console](https://console.anthropic.com/) | `ANTHROPIC_API_KEY` |
 
-### 2. GitHub Repository 설정
+### 2. Self-hosted Runner 설정 (필수)
+
+> ⚠️ **중요**: 백준(BOJ)은 클라우드 IP를 차단하므로, **Self-hosted runner**가 필요합니다.
+
+1. **Runner 추가**: Repository → Settings → Actions → Runners → **New self-hosted runner**
+
+2. **운영체제 선택 후 설치** (예: Windows)
+   ```powershell
+   # 1. 폴더 생성
+   mkdir actions-runner && cd actions-runner
+   
+   # 2. GitHub에서 제공하는 다운로드 & 설정 명령어 실행
+   # (Repository Settings → Actions → Runners에서 복사)
+   
+   # 3. 실행
+   ./run.cmd
+   ```
+
+3. **(선택) 서비스로 등록** - PC 시작 시 자동 실행
+   ```powershell
+   ./svc.cmd install
+   ./svc.cmd start
+   ```
+
+### 3. GitHub Repository 설정
 
 1. **Secrets 등록**: Repository → Settings → Secrets and variables → Actions
    ```
-   OPENAI_API_KEY=your_api_key_here  # 또는 다른 제공자의 API 키
+   GEMINI_API_KEY=your_api_key_here  # 또는 다른 제공자의 API 키
    ```
 
 2. **GitHub Action 워크플로우 생성**: `.github/workflows/ai-review.yml`
@@ -68,25 +92,26 @@
    
    jobs:
      ai-review:
-       runs-on: ubuntu-latest
+       runs-on: self-hosted  # ⚠️ 반드시 self-hosted 사용
        permissions:
          contents: write
        steps:
-          - uses: choam2426/AI-Algorithm-Mentor@v4
+         - uses: choam2426/AI-Algorithm-Mentor@v5
            with:
              GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-             LLM_PROVIDER: openai              # openai, google, anthropic
-             LLM_MODEL: gpt-4o                 # 모델명 (선택사항)
-             OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+             LLM_PROVIDER: google              # openai, google, anthropic
+             MODEL_NAME: gemini-3-pro-preview  # 모델명 (선택사항)
+             GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
              REVIEW_LANGUAGE: korean           # korean, english, etc..
    ```
 
-### 3. 코드 작성 및 커밋
+### 4. 코드 작성 및 커밋
 
 직접 커밋으로 알고리즘 문제 풀이를 올리면 자동으로 AI 리뷰가 생성됩니다!
 
 ❗❗❗코드의 첫 줄에는 반드시 해당 문제의 URL을 주석으로 추가해주세요!❗❗❗
 예) `# https://www.acmicpc.net/problem/1000`
+
 ---
 
 ## 📖 코드 예시
@@ -103,11 +128,11 @@ print(a + b)
 
 | 변수명 | 설명 | 기본값 | 예시 |
 |--------|------|-------|------|
-| `LLM_PROVIDER` | AI 제공자 | `openai` | `openai`, `google`, `anthropic` |
-| `LLM_MODEL` | 사용할 모델 | `gpt-4o` | `gpt-4o`, `gpt-4o-mini`, `gemini-2.5-pro`, `claude-3-sonnet` |
+| `LLM_PROVIDER` | AI 제공자 | `google` | `openai`, `google`, `anthropic` |
+| `MODEL_NAME` | 사용할 모델 | `gemini-3-pro-preview` | `gpt-5.1`, `gemini-3-pro-preview`, `claude-sonnet-4-5` |
 | `REVIEW_LANGUAGE` | 리뷰 언어 | `korean` | `korean`, `english` |
 | `OPENAI_API_KEY` | OpenAI API 키 | - | 필수 (openai 사용시) |
-| `GOOGLE_API_KEY` | Google AI API 키 | - | 필수 (google 사용시) |
+| `GEMINI_API_KEY` | Google AI API 키 | - | 필수 (google 사용시) |
 | `ANTHROPIC_API_KEY` | Anthropic API 키 | - | 필수 (anthropic 사용시) |
 | `GITHUB_TOKEN` | GitHub API 토큰 | GitHub Actions 기본 제공 | 커밋 코멘트 게시에 필요 |
 
