@@ -1,6 +1,6 @@
 from enum import Enum
 
-SURPORT_FILE_EXTENSIONS: tuple = (
+SUPPORT_FILE_EXTENSIONS: tuple = (
     ".c",
     ".cpp",
     ".cc",
@@ -8,9 +8,33 @@ SURPORT_FILE_EXTENSIONS: tuple = (
     ".py",
     ".java",
     ".js",
+    ".ts",
     ".go",
     ".rs",
+    ".cs",
+    ".kt",
+    ".kts",
+    ".rb",
+    ".swift",
 )
+
+COMMENT_PREFIX_MAP: dict[str, tuple[str, ...]] = {
+    ".c": ("//", "/*"),
+    ".cpp": ("//", "/*"),
+    ".cc": ("//", "/*"),
+    ".cxx": ("//", "/*"),
+    ".py": ("#", '"""', "'''"),
+    ".java": ("//", "/*"),
+    ".js": ("//", "/*"),
+    ".ts": ("//", "/*"),
+    ".go": ("//", "/*"),
+    ".rs": ("//", "/*"),
+    ".cs": ("//", "/*"),
+    ".kt": ("//", "/*"),
+    ".kts": ("//", "/*"),
+    ".rb": ("#", "=begin"),
+    ".swift": ("//", "/*"),
+}
 
 
 class LLMProvider(Enum):
@@ -18,14 +42,9 @@ class LLMProvider(Enum):
     ANTHROPIC = "anthropic"
     GOOGLE = "google"
 
-DEFAULT_MODEL_MAP: dict[LLMProvider, str] = {
-    LLMProvider.OPENAI: "gpt-5",
-    LLMProvider.ANTHROPIC: "claude-4.0-sonnet",
-    LLMProvider.GOOGLE: "gemini-2.5-pro",
-}
 
 API_KEY_ENV_MAP: dict[LLMProvider, str] = {
     LLMProvider.OPENAI: "OPENAI_API_KEY",
     LLMProvider.ANTHROPIC: "ANTHROPIC_API_KEY",
-    LLMProvider.GOOGLE: "GOOGLE_API_KEY",
+    LLMProvider.GOOGLE: "GEMINI_API_KEY",
 }

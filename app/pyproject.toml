@@ -1,15 +1,13 @@
 [project]
-name = "algorithm-code-review"
+name = "AI-Algorithm-Mentor"
 version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
+    "crewai[tools]>=0.201.1",
     "python-dotenv>=1.0.0",
-    "httpx[http2]>=0.28.1",
-    "langchain>=0.3.26",
-    "langchain-anthropic>=0.3.17",
-    "langchain-google-genai>=2.1.8",
-    "langchain-openai>=0.3.28",
-    "pydantic>=2.11.7",
+    "beautifulsoup4>=4.12.3",
+    "httpx==0.27.0",
+    "pydantic==2.12.4",
 ]
