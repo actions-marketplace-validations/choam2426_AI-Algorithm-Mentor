@@ -1,31 +1,34 @@
-FROM python:3.11-slim
+# syntax=docker/dockerfile:1
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
-
-# Minimal system deps
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    git \
-    && rm -rf /var/lib/apt/lists/*
+# 🚀 Lightweight Python image with uv for fast dependency installation
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
 WORKDIR /app
 
-# Copy application
-COPY ./app /app
+# Install dependencies only (cached layer)
+COPY app/pyproject.toml app/uv.lock ./
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --frozen --no-install-project --no-dev
 
-# Install uv and project deps
-RUN pip install --no-cache-dir uv && \
-    cd /app && uv pip install --system -e .
+# Copy source code
+COPY app/src ./src
+COPY app/main.py ./
 
-# Non-root user
-RUN useradd --create-home --shell /bin/bash appuser && \
-    chown -R appuser:appuser /app
-USER appuser
+# ─────────────────────────────────────────────────────────────
+# Production stage - minimal runtime image
+# ─────────────────────────────────────────────────────────────
+FROM python:3.13-slim-bookworm AS runtime
 
-# Health check: basic import sanity
-HEALTHCHECK --interval=30s --timeout=10s --start-period=30s --retries=3 \
-    CMD python -c "import src.config, src.github_service; print('ok')" || exit 1
+WORKDIR /app
 
-CMD ["python", "/app/main.py"]
+# Copy virtual environment and source from builder
+COPY --from=builder /app/.venv /app/.venv
+COPY --from=builder /app/src ./src
+COPY --from=builder /app/main.py ./
+
+# Use virtualenv Python
+ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+
+ENTRYPOINT ["python", "/app/main.py"]
