@@ -233,9 +233,9 @@ app/
 - ✅ **프로그래머스** (programmers.co.kr)
 
 > ⚠️ **백준(BOJ) 사용 시 주의사항**  
-> GitHub Actions의 IP가 백준 서버에서 간헐적으로 차단될 수 있습니다.
-> GitHub Actions를 재시도 하거나 아래 방법을 사용하는 것을 권장합니다.
-> 이 경우, 솔루션 파일과 같은 폴더에 있는 `README.md`에서 문제 정보를 자동으로 가져옵니다.  
+> GitHub Actions의 IP가 백준 서버에서 간헐적으로 차단될 수 있습니다.  
+> GitHub Actions를 재시도 하거나 아래 방법을 사용하는 것을 권장합니다.  
+> 문제 정보를 가져올 수 없는 경우 솔루션 파일과 같은 폴더에 있는 `README.md`를 읽고 문제 정보인 경우 해당 정보를 토대로 리뷰를 시작합니다.  
 > 크롬 익스텐션 [백준 허브](https://chromewebstore.google.com/detail/%EB%B0%B1%EC%A4%80%ED%97%88%EB%B8%8Cbaekjoonhub/ccammcjdkpgjmcpijpahlehmapgmphmk?hl=ko) 사용을 권장합니다.
 
 ### 리뷰 언어
@@ -273,4 +273,5 @@ uv sync
 ### 관련 프로젝트
 
 - [사용 예시](https://github.com/choam2426/OnlineJudge) - 개발자가 실제 적용하고 있는 레포
+
 
