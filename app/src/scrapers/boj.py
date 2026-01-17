@@ -1,3 +1,5 @@
+import asyncio
+
 import httpx
 from bs4 import BeautifulSoup
 
@@ -55,8 +57,14 @@ class BOJScraper(BaseScraper):
         ]
 
         last_response = None
-        for strategy_name, url, headers, use_http2 in strategies:
+        retry_delays = [0, 3.0, 5.0, 10.0]
+
+        for i, (strategy_name, url, headers, use_http2) in enumerate(strategies):
             try:
+                # 재시도 전 딜레이 (첫 시도 제외)
+                if retry_delays[i] > 0:
+                    await asyncio.sleep(retry_delays[i])
+
                 if use_http2:
                     # HTTP/2 클라이언트 생성
                     async with httpx.AsyncClient(http2=True, timeout=30.0) as h2_client:
