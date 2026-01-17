@@ -227,6 +227,12 @@ app/
 - ✅ **LeetCode** (leetcode.com)
 - ✅ **Programmers** (programmers.co.kr)
 
+> ⚠️ **Note for BOJ (Baekjoon) Users**  
+> GitHub Actions IPs may be intermittently blocked by the BOJ server.
+> We recommend retrying GitHub Actions or using the method below.
+> In this case, problem information will be automatically fetched from the `README.md` in the same folder as your solution file.  
+> We recommend using the Chrome extension [BaekjoonHub](https://chromewebstore.google.com/detail/baekjoonhub/ccammcjdkpgjmcpijpahlehmapgmphmk).
+
 ### Review Languages
 - Korean, English, and any language supported by LLM
 
