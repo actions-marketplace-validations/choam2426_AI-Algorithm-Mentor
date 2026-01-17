@@ -232,6 +232,12 @@ app/
 - ✅ **LeetCode** (leetcode.com)
 - ✅ **프로그래머스** (programmers.co.kr)
 
+> ⚠️ **백준(BOJ) 사용 시 주의사항**  
+> GitHub Actions의 IP가 백준 서버에서 간헐적으로 차단될 수 있습니다.
+> GitHub Actions를 재시도 하거나 아래 방법을 사용하는 것을 권장합니다.
+> 이 경우, 솔루션 파일과 같은 폴더에 있는 `README.md`에서 문제 정보를 자동으로 가져옵니다.  
+> 크롬 익스텐션 [백준 허브](https://chromewebstore.google.com/detail/%EB%B0%B1%EC%A4%80%ED%97%88%EB%B8%8Cbaekjoonhub/ccammcjdkpgjmcpijpahlehmapgmphmk?hl=ko) 사용을 권장합니다.
+
 ### 리뷰 언어
 - 한국어, 영어 등 LLM이 지원하는 모든 언어
 
