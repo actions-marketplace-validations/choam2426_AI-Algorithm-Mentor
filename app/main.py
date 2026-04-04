@@ -85,8 +85,7 @@ async def process_file(
         logger.error(f"문제 정보를 가져올 수 없습니다: {filename}")
         return None
 
-    # 동기 함수인 CrewAI 실행을 비동기 환경에서 실행 (블로킹 방지)
-    # CrewAI 내부적으로 API 호출 등을 하므로 시간이 걸림
+    # 동기 함수인 LangChain 체인 실행을 비동기 환경에서 실행 (블로킹 방지)
     try:
         review = await asyncio.to_thread(
             run_algorithm_review,
