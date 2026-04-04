@@ -40,13 +40,15 @@ async def process_file(
     Title: {problem_data.title}
     Platform: {problem_data.platform}
     URL: {problem_data.url}
-    
+    Difficulty: {problem_data.difficulty or 'N/A'}
+    Tags: {', '.join(problem_data.tags) if problem_data.tags else 'N/A'}
+
     [Description]
     {problem_data.description}
-    
+
     [Input Description]
     {problem_data.input_desc}
-    
+
     [Output Description]
     {problem_data.output_desc}
     """

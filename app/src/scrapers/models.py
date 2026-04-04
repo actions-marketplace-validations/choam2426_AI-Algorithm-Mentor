@@ -26,5 +26,8 @@ class ProblemData(BaseModel):
     difficulty: Optional[str] = None
     tags: List[str] = []
 
+    # solved.ac enrichment (BOJ only)
+    solved_ac_level: Optional[int] = None
+
     # Test Cases
     test_cases: List[TestCase] = []
