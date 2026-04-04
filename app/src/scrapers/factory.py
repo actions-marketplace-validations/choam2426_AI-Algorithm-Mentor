@@ -10,6 +10,8 @@ from .programmers import ProgrammersScraper
 def get_scraper(platform: str, client: httpx.AsyncClient) -> BaseScraper:
     if platform == "BOJ":
         return BOJScraper(client)
+    elif platform == "Codeforces":
+        return CodeforcesScraper(client)
     elif platform == "LeetCode":
         return LeetCodeScraper(client)
     elif platform == "Programmers":

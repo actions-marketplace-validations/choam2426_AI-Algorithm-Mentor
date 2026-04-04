@@ -112,15 +112,15 @@ def parse_problem_url(content: str) -> Optional[tuple[str, str]]:
     if match:
         return "Programmers", match.group(1)
 
-    # Codeforces: https://codeforces.com/problemset/problem/1/A
-    cf_problemset_pattern = r"codeforces\.com/problemset/problem/(\d+)/([A-Za-z]\d?)"
-    match = re.search(cf_problemset_pattern, content)
+    # Codeforces: https://codeforces.com/contest/1920/problem/A
+    #             https://codeforces.com/problemset/problem/1920/A
+    cf_contest_pattern = r"codeforces\.com/contest/(\d+)/problem/([A-Za-z]\d*)"
+    match = re.search(cf_contest_pattern, content)
     if match:
         return "Codeforces", f"{match.group(1)}/{match.group(2)}"
 
-    # Codeforces: https://codeforces.com/contest/1/problem/A
-    cf_contest_pattern = r"codeforces\.com/contest/(\d+)/problem/([A-Za-z]\d?)"
-    match = re.search(cf_contest_pattern, content)
+    cf_problemset_pattern = r"codeforces\.com/problemset/problem/(\d+)/([A-Za-z]\d*)"
+    match = re.search(cf_problemset_pattern, content)
     if match:
         return "Codeforces", f"{match.group(1)}/{match.group(2)}"
 
