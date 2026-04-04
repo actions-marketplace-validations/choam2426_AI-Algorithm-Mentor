@@ -33,6 +33,7 @@
 | **BOJ** (acmicpc.net) | ✅ Supported | `https://www.acmicpc.net/problem/1000` |
 | **LeetCode** (leetcode.com) | ✅ Supported | `https://leetcode.com/problems/two-sum/` |
 | **Programmers** (programmers.co.kr) | ✅ Supported | `https://school.programmers.co.kr/learn/courses/30/lessons/12345` |
+| **Codeforces** (codeforces.com) | ✅ Supported | `https://codeforces.com/problemset/problem/1/A` |
 
 ### 🤖 **Multi AI Model Support**
 - **OpenAI** (GPT-5-nano, GPT-5.1)
@@ -119,6 +120,13 @@ var twoSum = function(nums, target) {
 };
 ```
 
+### Codeforces
+```python
+# https://codeforces.com/problemset/problem/1/A
+n = int(input())
+print(n * n)
+```
+
 ### Programmers
 ```java
 // https://school.programmers.co.kr/learn/courses/30/lessons/12345
@@ -159,8 +167,9 @@ graph TD
     E --> E1[BOJScraper<br/>Baekjoon]
     E --> E2[LeetCodeScraper<br/>LeetCode GraphQL]
     E --> E3[ProgrammersScraper<br/>Programmers]
+    E --> E4[CodeforcesScraper<br/>Codeforces]
     
-    E1 & E2 & E3 --> F[crew.py<br/>CrewAI Algorithm Review]
+    E1 & E2 & E3 & E4 --> F[crew.py<br/>CrewAI Algorithm Review]
     
     F --> G[LiteLLM<br/>Multi AI Provider]
     G --> G1[OpenAI]
@@ -189,7 +198,8 @@ app/
         ├── models.py    # Pydantic data models
         ├── boj.py       # BOJ scraper
         ├── leetcode.py  # LeetCode scraper
-        └── programmers.py # Programmers scraper
+        ├── programmers.py # Programmers scraper
+        └── codeforces.py # Codeforces scraper
 ```
 
 ### Tech Stack
@@ -226,6 +236,7 @@ app/
 - ✅ **BOJ** (acmicpc.net)
 - ✅ **LeetCode** (leetcode.com)
 - ✅ **Programmers** (programmers.co.kr)
+- ✅ **Codeforces** (codeforces.com)
 
 > ⚠️ **Note for BOJ (Baekjoon) Users**  
 > GitHub Actions IPs may be intermittently blocked by the BOJ server.
