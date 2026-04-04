@@ -19,10 +19,19 @@ class LLMConfig:
 
 
 def get_github_config() -> GitHubConfig:
+    commit_sha = os.getenv("GITHUB_SHA")
+    repository = os.getenv("GITHUB_REPOSITORY")
+    github_token = os.getenv("GITHUB_TOKEN")
+
+    if not commit_sha or not repository or not github_token:
+        raise ValueError(
+            "필수 GitHub 환경 변수가 설정되지 않았습니다: GITHUB_SHA, GITHUB_REPOSITORY, GITHUB_TOKEN"
+        )
+
     return GitHubConfig(
-        commit_sha=os.getenv("GITHUB_SHA"),
-        repository=os.getenv("GITHUB_REPOSITORY"),
-        github_token=os.getenv("GITHUB_TOKEN"),
+        commit_sha=commit_sha,
+        repository=repository,
+        github_token=github_token,
     )
 
 

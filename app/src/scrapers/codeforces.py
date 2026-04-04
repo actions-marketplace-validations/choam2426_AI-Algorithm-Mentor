@@ -144,10 +144,18 @@ class CodeforcesScraper(BaseScraper):
 
         input_spec = problem_statement.select_one("div.input-specification")
         if input_spec:
+            # Remove section title ("Input") before extracting text
+            section_title = input_spec.select_one("div.section-title")
+            if section_title:
+                section_title.decompose()
             input_desc = self._extract_text(input_spec)
 
         output_spec = problem_statement.select_one("div.output-specification")
         if output_spec:
+            # Remove section title ("Output") before extracting text
+            section_title = output_spec.select_one("div.section-title")
+            if section_title:
+                section_title.decompose()
             output_desc = self._extract_text(output_spec)
 
         return description, input_desc, output_desc
