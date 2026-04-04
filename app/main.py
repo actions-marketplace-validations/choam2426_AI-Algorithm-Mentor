@@ -2,7 +2,7 @@ import asyncio
 
 import httpx
 from src.config import GitHubConfig, LLMConfig, get_github_config, get_llm_config
-from src.crew import run_algorithm_review
+from src.review_chain import run_algorithm_review
 from src.github_service import get_commit_data, get_readme_content, write_comment_in_commit
 from src.logger import logger
 from src.scrapers.factory import get_scraper
