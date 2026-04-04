@@ -76,7 +76,7 @@ jobs:
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_PROVIDER: google
-          MODEL_NAME: gemini-3-pro-preview
+          MODEL_NAME: gemini-3.1-flash
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
           REVIEW_LANGUAGE: english
 ```
@@ -142,7 +142,7 @@ int main() {
 | Input | Description | Default |
 |-------|-------------|---------|
 | `LLM_PROVIDER` | AI provider to use | `google` |
-| `MODEL_NAME` | Model name | `gemini-3-pro-preview` |
+| `MODEL_NAME` | Model name | `gemini-3.1-flash` |
 | `REVIEW_LANGUAGE` | Language for the review | `korean` |
 | `OPENAI_API_KEY` | OpenAI API key | — |
 | `GEMINI_API_KEY` | Google AI API key | — |
@@ -153,9 +153,9 @@ Supported models:
 
 | Provider | Models |
 |----------|--------|
-| Google | `gemini-3-pro-preview`, `gemini-2.5-flash` |
-| OpenAI | `gpt-5.1`, `gpt-5-nano` |
-| Anthropic | `claude-sonnet-4-5`, `claude-haiku-4-5` |
+| Google | `gemini-3.1-flash`, `gemini-3.1-pro` |
+| OpenAI | `gpt-5.4-mini`, `gpt-5.4-nano` |
+| Anthropic | `claude-sonnet-4-6`, `claude-haiku-4-5` |
 
 ---
 

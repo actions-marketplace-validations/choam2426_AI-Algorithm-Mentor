@@ -42,12 +42,12 @@ class TestGetLlmConfig:
         with pytest.raises(ValueError, match="잘못된 LLM_PROVIDER"):
             get_llm_config()
 
-    def test_missing_model_name_raises(self, monkeypatch):
+    def test_missing_model_name_uses_default(self, monkeypatch):
         monkeypatch.setenv("LLM_PROVIDER", "google")
         monkeypatch.delenv("MODEL_NAME", raising=False)
 
-        with pytest.raises(ValueError, match="MODEL_NAME"):
-            get_llm_config()
+        config = get_llm_config()
+        assert config.model_name == "gemini-3.1-flash"
 
     @pytest.mark.parametrize(
         "provider_str, expected_enum",

@@ -3,6 +3,12 @@ from dataclasses import dataclass
 
 from .consts import LLMProvider
 
+DEFAULT_MODEL_MAP: dict[LLMProvider, str] = {
+    LLMProvider.OPENAI: "gpt-5.4-mini",
+    LLMProvider.GOOGLE: "gemini-3.1-flash",
+    LLMProvider.ANTHROPIC: "claude-sonnet-4-6",
+}
+
 
 @dataclass(frozen=True)
 class GitHubConfig:
@@ -50,9 +56,7 @@ def get_llm_config() -> LLMConfig:
             f"잘못된 LLM_PROVIDER 값입니다: {llm_provider_str}. 유효한 값: {valid_providers}"
         )
 
-    model_name = os.getenv("MODEL_NAME")
-    if not model_name:
-        raise ValueError("MODEL_NAME 환경 변수가 설정되지 않았습니다.")
+    model_name = os.getenv("MODEL_NAME") or DEFAULT_MODEL_MAP[provider]
 
     response_language = os.getenv("REVIEW_LANGUAGE", "korean")
     return LLMConfig(
