@@ -28,7 +28,7 @@ inputs:
 
 runs:
   using: "docker"
-  image: "docker://choam2426/ai_algorithm_mentor:v5"
+  image: "docker://choam2426/ai_algorithm_mentor:v6"
   env:
     GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
     LLM_PROVIDER: ${{ inputs.LLM_PROVIDER }}
