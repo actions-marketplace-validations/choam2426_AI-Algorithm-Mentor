@@ -36,20 +36,35 @@ async def process_file(
         scraper = get_scraper(platform, client)
         problem_data = await scraper.get_problem(problem_id)
 
-        problem_info_str = f"""
-    Title: {problem_data.title}
-    Platform: {problem_data.platform}
-    URL: {problem_data.url}
-    
-    [Description]
-    {problem_data.description}
-    
-    [Input Description]
-    {problem_data.input_desc}
-    
-    [Output Description]
-    {problem_data.output_desc}
-    """
+        # Build problem info string.  When the scraper returned metadata
+        # only (e.g. Codeforces API fallback), include tags/difficulty
+        # and note the missing description so the reviewer can still
+        # provide useful feedback based on the solution code alone.
+        sections = [
+            f"Title: {problem_data.title}",
+            f"Platform: {problem_data.platform}",
+            f"URL: {problem_data.url}",
+        ]
+        if problem_data.difficulty:
+            sections.append(f"Difficulty: {problem_data.difficulty}")
+        if problem_data.tags:
+            sections.append(f"Tags: {', '.join(problem_data.tags)}")
+
+        if problem_data.description:
+            sections.append(f"\n[Description]\n{problem_data.description}")
+        else:
+            sections.append(
+                "\n[Description]\n"
+                "(Problem description unavailable -- review based on "
+                "solution code, title, and tags.)"
+            )
+
+        if problem_data.input_desc and problem_data.input_desc != "See problem page":
+            sections.append(f"\n[Input Description]\n{problem_data.input_desc}")
+        if problem_data.output_desc and problem_data.output_desc != "See problem page":
+            sections.append(f"\n[Output Description]\n{problem_data.output_desc}")
+
+        problem_info_str = "\n".join(sections)
     except Exception as e:
         logger.warning(f"스크래핑 실패 ({filename}): {e}")
         logger.info("README.md fallback 시도 중...")
