@@ -33,6 +33,7 @@
 | **백준** (acmicpc.net) | ✅ 지원 | `https://www.acmicpc.net/problem/1000` |
 | **LeetCode** (leetcode.com) | ✅ 지원 | `https://leetcode.com/problems/two-sum/` |
 | **프로그래머스** (programmers.co.kr) | ✅ 지원 | `https://school.programmers.co.kr/learn/courses/30/lessons/12345` |
+| **Codeforces** (codeforces.com) | ✅ 지원 | `https://codeforces.com/problemset/problem/1/A` |
 
 ### 🤖 **다중 AI 모델 지원**
 - **OpenAI** (GPT-5-nano, GPT-5.1)
@@ -124,6 +125,13 @@ var twoSum = function(nums, target) {
 };
 ```
 
+### Codeforces
+```python
+# https://codeforces.com/problemset/problem/1/A
+n = int(input())
+print(n * n)
+```
+
 ### 프로그래머스
 ```java
 // https://school.programmers.co.kr/learn/courses/30/lessons/12345
@@ -164,8 +172,9 @@ graph TD
     E --> E1[BOJScraper<br/>백준]
     E --> E2[LeetCodeScraper<br/>LeetCode GraphQL]
     E --> E3[ProgrammersScraper<br/>프로그래머스]
+    E --> E4[CodeforcesScraper<br/>Codeforces]
     
-    E1 & E2 & E3 --> F[crew.py<br/>CrewAI 알고리즘 리뷰]
+    E1 & E2 & E3 & E4 --> F[crew.py<br/>CrewAI 알고리즘 리뷰]
     
     F --> G[LiteLLM<br/>다중 AI 프로바이더]
     G --> G1[OpenAI]
@@ -194,7 +203,8 @@ app/
         ├── models.py    # Pydantic 데이터 모델
         ├── boj.py       # 백준 스크래퍼
         ├── leetcode.py  # LeetCode 스크래퍼
-        └── programmers.py # 프로그래머스 스크래퍼
+        ├── programmers.py # 프로그래머스 스크래퍼
+        └── codeforces.py # Codeforces 스크래퍼
 ```
 
 ### 기술 스택
@@ -231,6 +241,7 @@ app/
 - ✅ **백준** (acmicpc.net)
 - ✅ **LeetCode** (leetcode.com)
 - ✅ **프로그래머스** (programmers.co.kr)
+- ✅ **Codeforces** (codeforces.com)
 
 > ⚠️ **백준(BOJ) 사용 시 주의사항**  
 > GitHub Actions의 IP가 백준 서버에서 간헐적으로 차단될 수 있습니다.  
