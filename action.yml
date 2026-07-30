@@ -10,9 +10,8 @@ inputs:
     required: true
     default: "google"
   MODEL_NAME:
-    description: "Model name to use for code review (e.g., gpt-5-nano, gpt-5.1, gemini-2.5-flash, gemini-3-pro-preview, claude-haiku-4-5, claude-sonnet-4-5)"
+    description: "Model name to use for code review (e.g., gpt-5.4-mini, gemini-3.1-flash, claude-sonnet-4-6). If omitted, a default model is selected based on LLM_PROVIDER."
     required: false
-    default: "gemini-3-pro-preview"
   OPENAI_API_KEY:
     description: "OpenAI API key (required when LLM_PROVIDER is 'openai')"
     required: false
@@ -29,7 +28,7 @@ inputs:
 
 runs:
   using: "docker"
-  image: "docker://choam2426/ai_algorithm_mentor:v5"
+  image: "docker://choam2426/ai_algorithm_mentor:v6"
   env:
     GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
     LLM_PROVIDER: ${{ inputs.LLM_PROVIDER }}

@@ -2,7 +2,7 @@ import asyncio
 
 import httpx
 from src.config import GitHubConfig, LLMConfig, get_github_config, get_llm_config
-from src.crew import run_algorithm_review
+from src.review_chain import run_algorithm_review
 from src.github_service import get_commit_data, get_readme_content, write_comment_in_commit
 from src.logger import logger
 from src.scrapers.factory import get_scraper
@@ -36,20 +36,35 @@ async def process_file(
         scraper = get_scraper(platform, client)
         problem_data = await scraper.get_problem(problem_id)
 
-        problem_info_str = f"""
-    Title: {problem_data.title}
-    Platform: {problem_data.platform}
-    URL: {problem_data.url}
-    
-    [Description]
-    {problem_data.description}
-    
-    [Input Description]
-    {problem_data.input_desc}
-    
-    [Output Description]
-    {problem_data.output_desc}
-    """
+        # Build problem info string.  When the scraper returned metadata
+        # only (e.g. Codeforces API fallback), include tags/difficulty
+        # and note the missing description so the reviewer can still
+        # provide useful feedback based on the solution code alone.
+        sections = [
+            f"Title: {problem_data.title}",
+            f"Platform: {problem_data.platform}",
+            f"URL: {problem_data.url}",
+        ]
+        if problem_data.difficulty:
+            sections.append(f"Difficulty: {problem_data.difficulty}")
+        if problem_data.tags:
+            sections.append(f"Tags: {', '.join(problem_data.tags)}")
+
+        if problem_data.description:
+            sections.append(f"\n[Description]\n{problem_data.description}")
+        else:
+            sections.append(
+                "\n[Description]\n"
+                "(Problem description unavailable -- review based on "
+                "solution code, title, and tags.)"
+            )
+
+        if problem_data.input_desc and problem_data.input_desc != "See problem page":
+            sections.append(f"\n[Input Description]\n{problem_data.input_desc}")
+        if problem_data.output_desc and problem_data.output_desc != "See problem page":
+            sections.append(f"\n[Output Description]\n{problem_data.output_desc}")
+
+        problem_info_str = "\n".join(sections)
     except Exception as e:
         logger.warning(f"스크래핑 실패 ({filename}): {e}")
         logger.info("README.md fallback 시도 중...")
@@ -85,8 +100,7 @@ async def process_file(
         logger.error(f"문제 정보를 가져올 수 없습니다: {filename}")
         return None
 
-    # 동기 함수인 CrewAI 실행을 비동기 환경에서 실행 (블로킹 방지)
-    # CrewAI 내부적으로 API 호출 등을 하므로 시간이 걸림
+    # 동기 함수인 LangChain 체인 실행을 비동기 환경에서 실행 (블로킹 방지)
     try:
         review = await asyncio.to_thread(
             run_algorithm_review,
